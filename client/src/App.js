@@ -1,22 +1,19 @@
-
-
-
-
 // client/src/App.js
 
-import React from "react";
+import React, {useEffect, useState} from "react";
 import logo from "./icons/logo.svg";
 import stats from "./icons/stats.svg";
 import "./App.css";
+import Map from "./components/Map.js";
 
 
 function App() {
-  const [data, setData] = React.useState(null);
+  const [data, setData] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetch("/api")
       .then((res) => res.json())
-      .then((data) => setData(data.message));
+      .then((data) => setData(data));
   }, []);
 
   return (
@@ -31,7 +28,8 @@ function App() {
         <img src={stats} className="App-logo" alt="logo" />
         </div>
       </header>
-      <div>
+      <div id={"map-container"}>
+        <Map data={data}/>
       </div>
     </div>
   );

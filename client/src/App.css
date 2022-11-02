@@ -53,3 +53,8 @@ body {
 #App-header-settings-container {
   column-gap: 5vw;
 }
+
+#map-container {
+  position: relative;
+  height: 100%;
+}
