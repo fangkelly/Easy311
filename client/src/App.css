@@ -72,6 +72,7 @@ body {
   border-radius: 20px;
   background-color: var(--card-black);
   backdrop-filter: blur(60px);
+  z-index: 1;
 }
 
 
@@ -138,6 +139,9 @@ body {
   position: absolute;
   top: 2rem;
   z-index: 0;
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
 }
 
 input:focus {outline:none;}
@@ -146,14 +150,44 @@ input:focus {outline:none;}
   background-color: var(--card-black);
   border: none;
   height: 2.5rem;
-  padding: 0.25rem 0.5rem 0.25rem 4rem;
+  padding: 0.25rem 0.5rem 0.25rem 2rem;
   color: white;
   width: 100%;
 
-  background-image: url("https://upload.wikimedia.org/wikipedia/commons/5/55/Magnifying_glass_icon.svg");
+  background-image: url("./icons/searchIcon.svg");
   background-size: 13px;
   background-repeat: no-repeat;
   background-position: 10px center;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  cursor: pointer;
+  height: 20px;
+  width: 20px;
+  /* background-image: url("./icons/searchIcon.svg"); */
+}
+
+.filter-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2rem;
+  height: 100px;
+}
+
+.category-filter {
+  background-color: var(--card-black);
+}
+
+.status-filter, .category-filter {
+  background-color: var(--card-black);
+  color: var(--gray);
+  padding: 0.5rem;
+}
+
+.secondaryLabel {
+  color: var(--gray);
+  margin: 0;
 }
 
 

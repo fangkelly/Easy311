@@ -73,9 +73,22 @@ function App() {
         </Sheet.Backdrop>
       </Sheet>
 
-      {/* <div className="searchFilter-container">
+      <div className="searchFilter-container">
         <input type="search" id="searchBar" placeholder="Search..."></input>
-      </div> */}
+        <div className="filter-container">
+          <div className="category-filter">
+            <p className="secondaryLabel">Category</p>
+
+          </div>
+
+          <div className="status-filter">
+            <p className="secondaryLabel">Status</p>
+
+          </div>
+
+
+        </div>
+      </div>
       </div>
 
       
