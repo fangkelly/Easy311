@@ -83,6 +83,7 @@ body {
 .react-modal-sheet-container {
   height: fit-content !important;
   background: linear-gradient(180deg, rgba(26, 26, 26, 0.75), rgba(26, 26, 26, 0.95));
+  z-index: 3;
 }
 .react-modal-sheet-header {
 }
@@ -136,13 +137,23 @@ body {
   width: calc(100vw - 2rem);
   position: absolute;
   top: 2rem;
-  z-index: 2;
+  z-index: 0;
 }
+
+input:focus {outline:none;}
 
 #searchBar {
   background-color: var(--card-black);
   border: none;
-  height: 2rem;
+  height: 2.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 4rem;
+  color: white;
+  width: 100%;
+
+  background-image: url("https://upload.wikimedia.org/wikipedia/commons/5/55/Magnifying_glass_icon.svg");
+  background-size: 13px;
+  background-repeat: no-repeat;
+  background-position: 10px center;
 }
 
 
