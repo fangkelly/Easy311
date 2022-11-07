@@ -1,5 +1,3 @@
-// client/src/App.js
-
 import React, {useEffect, useState} from "react";
 import logo from "./icons/logo.svg";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -10,6 +8,16 @@ import DataView from "./components/DataView";
 import Sheet from 'react-modal-sheet';
 import Form from 'react-bootstrap/Form';
 
+
+/**
+ * App.
+ * @constructor
+ * @param {object[]} data - 311 service requests displayed on map.
+ * @param {boolean} dataView - True if data analysis panel open.
+ * @param {object} pointData - Single 311 service request.
+ * @param {object} filterStatus - If user has toggled Opened, In Progress, or Closed
+ * @param {object} search - What the current search query is
+ */
 
 
 
@@ -27,13 +35,6 @@ function App() {
       .then((data) => setData(data));
   }, []);
 
-  useEffect(() => {
-    console.log(`filterStatus ${filterStatus}`);
-  }, [filterStatus])
-
-  useEffect(() => {
-    console.log(`search ${search}`);
-  }, [search])
 
   return (
     <div className="App">
@@ -114,8 +115,6 @@ function App() {
             </Form>
 
           </div>
-
-
         </div>
       </div>
       </div>
