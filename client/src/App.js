@@ -3,7 +3,7 @@
 import React, {useEffect, useState} from "react";
 import logo from "./icons/logo.svg";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChartColumn, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faChartColumn, faXmark, faEllipsis, faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import "./App.css";
 import Map from "./components/Map.js";
 import DataView from "./components/DataView";
@@ -44,20 +44,43 @@ function App() {
         <Sheet isOpen={pointData?true:false} onClose={() => setPointData(null)}>
         <Sheet.Container>
           <Sheet.Header />
-          <Sheet.Content>{/* Your sheet content goes here */}</Sheet.Content>
+          <Sheet.Content>
+            {<div className="bottomSheet">
+                <p className="backDrop-sub bold">Updates</p>
+
+                <div className="updates">updates</div>
+                <div className="comment">comment section</div>
+            </div>}
+          </Sheet.Content>
         </Sheet.Container>
 
         <Sheet.Backdrop>
-          <div style={{padding:"10vh 5vw", height:"80vh", width: "90vw",
+          <div style={{padding:"1rem 1rem", height:"calc(100vh - 2rem)", width: "calc(100vw - 2rem)",
           backgroundSize: "cover",
           backgroundImage:`url(${pointData?.properties?.media_link || "https://pbs.twimg.com/media/Fd4imgrXoAEQxzS?format=jpg&name=large"})`}}>
+            <div className="backDrop-btns">
+              <button className="backDrop-btn" 
+              onClick={(e)=>{
+                  e.stopPropagation();
+                  setPointData(null)}
+                } >
+                  <FontAwesomeIcon icon={faChevronDown} color={"black"}/></button>
+              <button className="backDrop-btn"><FontAwesomeIcon icon={faEllipsis} color={"black"}/></button>
+            </div>
             <p className="backDrop">Request #{pointData?.properties?.service_request_id}</p>
             <p className="backDrop-sub">{pointData?.properties?.address} </p>
           </div>
         </Sheet.Backdrop>
-        
       </Sheet>
+
+      <div className="searchFilter-container">
+        <input type="search" id="searchBar"></input>
+        <p>AAAA</p>
+
       </div>
+      </div>
+
+      
       
     </div>
   );

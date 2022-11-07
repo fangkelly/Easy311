@@ -77,14 +77,14 @@ body {
 
 /* POINT DATA CARD */
 .react-modal-sheet-backdrop {
-  /* custom styles */
+  touch-action: auto !important;
+  pointer-events: all !important;
 }
 .react-modal-sheet-container {
-  height: 50vh !important;
-  background: linear-gradient(360deg, #222222 3.9%, #222222 78.03%, rgba(34, 34, 34, 0) 122.36%);
+  height: fit-content !important;
+  background: linear-gradient(180deg, rgba(26, 26, 26, 0.75), rgba(26, 26, 26, 0.95));
 }
 .react-modal-sheet-header {
-  /* custom styles */
 }
 .react-modal-sheet-drag-indicator {
   /* custom styles */
@@ -103,4 +103,50 @@ body {
 .backDrop-sub {
   font-size: 14px;
   color: white;
+}
+
+.backDrop-btns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-bottom: 2rem;
+}
+
+.backDrop-btn {
+  border-radius: 50%;
+  height: 10vw;
+  width: 10vw;
+  background-color: rgb(217,217,217, .6);
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bottomSheet {
+  padding: 0 1rem 1rem 1rem;
+  min-height: 30vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+}
+
+.searchFilter-container {
+  width: calc(100vw - 2rem);
+  position: absolute;
+  top: 2rem;
+  z-index: 2;
+}
+
+#searchBar {
+  background-color: var(--card-black);
+  border: none;
+  height: 2rem;
+}
+
+
+/* UTIl */
+.bold {
+  font-weight: bold;
 }
