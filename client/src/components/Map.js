@@ -1,7 +1,7 @@
-import React, { useEffect, useState} from 'react';
+import React, { useEffect, useState, useCallback} from 'react';
 import {StaticMap, MapContext, NavigationControl} from 'react-map-gl';
-import DeckGL, {GeoJsonLayer, ArcLayer} from 'deck.gl';
-import {AmbientLight, PointLight, DirectionalLight, LightingEffect} from '@deck.gl/core';
+import DeckGL, {GeoJsonLayer, FlyToInterpolator} from 'deck.gl';
+
 
 
 
@@ -18,71 +18,60 @@ const MAPBOX_ACCESS_TOKEN = "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9i
 const MAP_STYLE = 'mapbox://styles/fangk/cl9wdl7xy000414mj5xk8899r';
 const NAV_CONTROL_STYLE = {
   position: 'absolute',
-  top: 10,
-  left: 10
+  bottom: 100,
+  right: 10
 };
 
-// create ambient light source
-const ambientLight = new AmbientLight({
-  color: [255, 0, 0],
-  intensity: 1.0
-});
-// create point light source
-const pointLight = new PointLight({
-  color: [255, 255, 255],
-  intensity: 2.0,
-  // use coordinate system as the same as view state
-  position: [-125, 50.5, 5000]
-});
-// create directional light source
-const directionalLight = new DirectionalLight({
-  color: [255, 255, 255],
-  intensity: 1.0,
-  direction: [-3, -9, -1]
-});
 
-// create lighting effect with light sources
-const lightingEffect = new LightingEffect({ambientLight, pointLight, directionalLight});
 
-export default function Map({data}) {
+export default function Map({data, setPointData}) {
+
+  const [initialViewState, setInitialViewState] = useState(INITIAL_VIEW_STATE);
 
   useEffect(()=>{
     console.log(data)
   }, [data])
 
-  const onClick = info => {
-    if (info.object) {
-      // eslint-disable-next-line
-      alert(`${info.object.properties.name} (${info.object.properties.abbrev})`);
-    }
-  };
+  const flyToClick = useCallback((coords, obj) => {
+    setPointData(obj);
+    console.log(obj);
+    setInitialViewState({
+        longitude: coords[0],
+        latitude: coords[1],
+        zoom: 15,
+        transitionDuration: 1000,
+        transitionInterpolator: new FlyToInterpolator(),
+    });
+  })
+  
+
 
   const layers = [
     new GeoJsonLayer({
       id: 'phl311', // layer id
       data: data, // data formatted as array of objects
       // Styles
-      opacity: 0.9,
       filled: true, // filled in point
       stroked: true, // outline stroke
       getLineColor:[75, 162, 164, 60],
       getLineWidth: 10,
       lineWidthMinPixels: 10,
       lineWidthUnits: 'pixels',
-      // pointRadiusMaxPixles: 10, // point radius scale
+      //pointRadiusMaxPixles: 10, // point radius scale
       pointRadiusMinPixels: 10, // minimum point radius (px)
+      radiusScale: 6,
       getPosition: d => d.geometry.coordinates, // coordinates [lng, lat] for each data point
       getFillColor: [255, 255, 255], // rgb color values
       opacity: 0.9, // opacity 0 to 1
-      pickable: true
+      pickable: true,
+      onClick: (info, event) => flyToClick(info.coordinate, info.object)
   })
   ];
 
   return (
     <DeckGL
-      initialViewState={INITIAL_VIEW_STATE}
+      initialViewState={initialViewState}
       controller={true}
-      effects={[lightingEffect]}
       layers={layers}
       ContextProvider={MapContext.Provider}
     >
