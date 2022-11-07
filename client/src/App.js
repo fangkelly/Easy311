@@ -8,6 +8,8 @@ import "./App.css";
 import Map from "./components/Map.js";
 import DataView from "./components/DataView";
 import Sheet from 'react-modal-sheet';
+import Form from 'react-bootstrap/Form';
+
 
 
 
@@ -83,6 +85,16 @@ function App() {
 
           <div className="status-filter">
             <p className="secondaryLabel">Status</p>
+            <Form>
+              {["Opened", "In Progress", "Closed"].map((label)=>{
+                  return (<Form.Check
+                    label={label}
+                    name={label}
+                    type={"checkbox"}
+                    id={`${label}-checkbox`}
+                  />)
+              })}
+            </Form>
 
           </div>
 
