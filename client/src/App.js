@@ -17,6 +17,8 @@ function App() {
   const [data, setData] = useState(null);
   const [dataView, setToggleDataView] = useState(false);
   const [pointData, setPointData] = useState(false);
+  const [filterStatus, setFilterStatus] = useState({opened: false, inprogress: false, closed: false})
+  const [search, setSearch] = useState('');
 
 
   useEffect(() => {
@@ -24,6 +26,14 @@ function App() {
       .then((res) => res.json())
       .then((data) => setData(data));
   }, []);
+
+  useEffect(() => {
+    console.log(`filterStatus ${filterStatus}`);
+  }, [filterStatus])
+
+  useEffect(() => {
+    console.log(`search ${search}`);
+  }, [search])
 
   return (
     <div className="App">
@@ -76,7 +86,7 @@ function App() {
       </Sheet>
 
       <div className="searchFilter-container">
-        <input type="search" id="searchBar" placeholder="Search..."></input>
+        <input type="search" id="searchBar" placeholder="Search..." onChange={(e)=>setSearch(e.target.value)} ></input>
         <div className="filter-container">
           <div className="category-filter">
             <p className="secondaryLabel">Category</p>
@@ -88,6 +98,13 @@ function App() {
             <Form>
               {["Opened", "In Progress", "Closed"].map((label)=>{
                   return (<Form.Check
+                    onChange={(e) => {
+                      let key = label.toLowerCase().replace(" ", "");
+                      setFilterStatus({
+                        ...filterStatus, // Copy the old fields
+                        [key]: e.target.checked // But override this one
+                      });
+                    }}
                     label={label}
                     name={label}
                     type={"checkbox"}
