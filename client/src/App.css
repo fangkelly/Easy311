@@ -73,6 +73,9 @@ body {
   background-color: var(--card-black);
   backdrop-filter: blur(60px);
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 
@@ -136,7 +139,6 @@ body {
 
 
 /* SETTINGS CONTAINER */
-
 .searchFilter-container {
   width: calc(100vw - 2rem);
   position: absolute;
@@ -145,6 +147,7 @@ body {
   display: flex;
   flex-direction: column;
   row-gap: 1rem;
+  font-size: 16px;
 }
 
 /* SEARCH BAR */
@@ -173,7 +176,6 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 /* FILTER */
-
 .filter-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -206,6 +208,7 @@ input[type="search"]::-webkit-search-cancel-button {
   font-size: 16px;
 }
 
+/* OVERRIDE CHECKBOX STYLING */
 .form-check-input:checked {
   background-color: var(--blue) !important;
   border-color: var(--blue) !important;
