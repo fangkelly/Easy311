@@ -85,7 +85,6 @@ body {
   pointer-events: all !important;
 }
 .react-modal-sheet-container {
-  height: fit-content !important;
   background: linear-gradient(180deg, rgba(26, 26, 26, 0.75), rgba(26, 26, 26, 0.95));
   z-index: 3;
 }
