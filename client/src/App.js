@@ -14,7 +14,7 @@ import DataView from "./components/DataView";
 import Sheet from "react-modal-sheet";
 import Form from "react-bootstrap/Form";
 
-const STATUS_OPTIONS = ["Opened", "Closed"];
+const STATUS_OPTIONS = ['Open', 'Closed'];
 const CATEGORY_OPTIONS = [
   "Illegal Dumping",
   "Rubbish and Recycling",
@@ -50,15 +50,11 @@ function App() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("/api")
+    fetch(`/data?status=${filterStatus}&category=${filterCategory}&search=${search}`)
       .then((res) => res.json())
       .then((data) => setData(data));
-  }, []);
+  }, [filterStatus, filterCategory, search]);
 
-  useEffect(() => {
-    console.log("filterStatus ", filterStatus);
-    console.log("filterCategory ", filterCategory);
-  }, [filterStatus, filterCategory]);
 
   return (
     <div className="App">
@@ -109,7 +105,7 @@ function App() {
                 width: "calc(100vw - 2rem)",
                 backgroundSize: "cover",
                 backgroundImage: `url(${
-                  pointData?.properties?.media_link ||
+                  pointData?.properties?.media_url ||
                   "https://pbs.twimg.com/media/Fd4imgrXoAEQxzS?format=jpg&name=large"
                 })`,
               }}
@@ -174,6 +170,7 @@ function App() {
                           setFilterStatus(newFilterStatus);
                         }
                       }}
+                      key={label}
                       label={label}
                       name={label}
                       type={"checkbox"}
@@ -209,6 +206,7 @@ function App() {
                           setFilterCategory(newFilterCategory);
                         }
                       }}
+                      key={label}
                       label={label}
                       name={label}
                       type={"checkbox"}
