@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import logo from "./icons/logo.svg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -48,6 +49,34 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
+const convertDate = (datetime) => {
+  if (datetime) {
+    let dt = datetime.split("T");
+    let date = dt[0].split("-");
+    let time = dt[1].slice(0, -1).split(":");
+
+    date = `${MONTHS[date[1]]} ${date[2]}, ${date[0]}`;
+    let convertedTime, AM;
+
+    if (time[0] == 0) {
+      convertedTime = 12;
+      AM = true;
+    } else if (time[0] < 12) {
+      convertedTime = time[0];
+      AM = true;
+    } else {
+      convertedTime = 24 - time[0];
+      AM = false;
+    }
+
+    time[0] = convertedTime;
+    time = time.join(":");
+
+    return `${date} ${time} ${AM ? "AM" : "PM"}`;
+  }
+  return;
+};
+
 /**
  * App.
  * @constructor
@@ -62,41 +91,19 @@ const CATEGORY_OPTIONS = [
 
 function App() {
   const [data, setData] = useState(null);
-  const [dataView, setToggleDataView] = useState(false);
+  const [dataView, setDataView] = useState(false);
   const [toggleFilter, setToggleFilter] = useState(false);
   const [pointData, setPointData] = useState(false);
   const [filterStatus, setFilterStatus] = useState(STATUS_OPTIONS);
   const [filterCategory, setFilterCategory] = useState(CATEGORY_OPTIONS);
   const [search, setSearch] = useState("");
   const [timeRange, setTimeRange] = useState("This week");
+  const [neighborhood, setNeighborhood] = useState(null);
 
-  const convertDate = (datetime) => {
-    if (datetime) {
-      let dt = datetime.split("T");
-      let date = dt[0].split("-");
-      let time = dt[1].slice(0, -1).split(":");
+  useEffect(() => {
+    console.log("neighborhood ", neighborhood);
+  }, [neighborhood])
 
-      date = `${MONTHS[date[1]]} ${date[2]}, ${date[0]}`;
-      let convertedTime, AM;
-
-      if (time[0] == 0) {
-        convertedTime = 12;
-        AM = true;
-      } else if (time[0] < 12) {
-        convertedTime = time[0];
-        AM = true;
-      } else {
-        convertedTime = 24 - time[0];
-        AM = false;
-      }
-
-      time[0] = convertedTime;
-      time = time.join(":");
-
-      return `${date} ${time} ${AM ? "AM" : "PM"}`;
-    }
-    return;
-  };
 
   useEffect(() => {
     fetch(
@@ -105,7 +112,6 @@ function App() {
       .then((res) => res.json())
       .then((data) => setData(data));
   }, [filterStatus, filterCategory, search, timeRange]);
-
 
   return (
     <div className="App">
@@ -121,14 +127,16 @@ function App() {
             color={"#A1A1A1"}
             size={"lg"}
             onClick={() => {
-              setToggleDataView(!dataView);
+              setDataView(!dataView);
             }}
           ></FontAwesomeIcon>
         </div>
       </header>
       <div id={"map-container"}>
-        <Map data={data} setPointData={setPointData} />
-        {dataView && <DataView timeRange={timeRange} setTimeRange={setTimeRange}/>}
+        <Map data={data} setDataView={setDataView} setPointData={setPointData} setNeighborhood={setNeighborhood} />
+        {dataView && (
+          <DataView timeRange={timeRange} setTimeRange={setTimeRange} neighborhood={neighborhood} />
+        )}
 
         <Sheet
           isOpen={pointData ? true : false}
@@ -140,7 +148,9 @@ function App() {
             <Sheet.Content>
               {
                 <div className="bottomSheet">
-                  <p className="backDrop-sub bold">{pointData?.properties?.service_name}</p>
+                  <p className="backDrop-sub bold">
+                    {pointData?.properties?.service_name}
+                  </p>
                   <p className="backDrop-sub bold">Updates</p>
                   <VerticalTimeline lineColor={"#AAAAAA"}>
                     {[
@@ -161,10 +171,10 @@ function App() {
                               color: "#fff",
                               padding: "0",
                               border: "none",
-                              boxShadow: "none"
+                              boxShadow: "none",
                             }}
                             contentArrowStyle={{
-                              display:"none",
+                              display: "none",
                             }}
                             date={convertedDate}
                             iconStyle={{
@@ -173,15 +183,17 @@ function App() {
                               boxShadow: "none",
                               height: "14px",
                               width: "14px",
-                              left: "11px"
+                              left: "11px",
                             }}
                           >
                             <h4 className="vertical-timeline-element-subtitle">
-                              {time=="requested_datetime"?
-                              "Service request opened":
-                              time=="updated_datetime"?
-                              pointData.properties?.status_notes? pointData.properties.status_notes : "Service request updated" :
-                              "Service request closed"}
+                              {time == "requested_datetime"
+                                ? "Service request opened"
+                                : time == "updated_datetime"
+                                ? pointData.properties?.status_notes
+                                  ? pointData.properties.status_notes
+                                  : "Service request updated"
+                                : "Service request closed"}
                             </h4>
                           </VerticalTimelineElement>
                         );

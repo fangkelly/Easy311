@@ -114,6 +114,13 @@ body {
     margin: 0
 }
 
+.nor-name {
+  font-size: 36px;
+    font-weight: bold;
+    color: white;
+    margin: 0
+}
+
 .trend {
   display: flex;
   flex-flow: row;
@@ -320,6 +327,7 @@ body {
 
 /* SEARCH BAR */
 input:focus {outline:none;}
+/* input[type=search] { -webkit-appearance: none; } */
 
 #searchBar, #dataView-searchBar {
   position: relative;

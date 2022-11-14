@@ -53,11 +53,14 @@ function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   );
 }
 
-export default function DataView({timeRange, setTimeRange}) {
+export default function DataView({timeRange, setTimeRange, neighborhood}) {
   const [toggleDD, setToggleDD] = useState(false);
   return (
     <div className="card card-style">
       <div className="data-container">
+      <div className="data-section">
+          <p className="nor-name">{neighborhood?neighborhood.properties.listname:"Philadelphia"}</p>
+        </div>
         <div className="data-section">
           <p className="data-title">Number of Requests</p>
           <div className="nor-stat">
