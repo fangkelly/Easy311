@@ -66,13 +66,8 @@ body {
 
 /* DATA VIEW CARD */
 .card {
-  position: absolute;
-  width: calc(100% - 8px);
   height: calc(100% - 8px);
-  border-radius: 20px;
-  background-color: var(--card-black);
-  backdrop-filter: blur(60px);
-  z-index: 1;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -144,22 +139,32 @@ body {
   top: 2rem;
   z-index: 0;
   display: flex;
-  flex-direction: column;
-  row-gap: 1rem;
+  flex-direction: row;
+  column-gap: 0.25rem;
   font-size: 16px;
+}
+
+#filterToggle, #searchBar {
+  background-color: var(--card-black);
+  border: 1px solid rgb(255, 255, 255, 0.15);
+  height: 2.5rem;
+  color: white;
+  border-radius: 12px;
+}
+
+/* FILTER TOGGLE */
+#filterToggle {
+  padding: 0.5rem;
+  color: var(--gray);
 }
 
 /* SEARCH BAR */
 input:focus {outline:none;}
 
 #searchBar {
-  background-color: var(--card-black);
-  border: none;
-  height: 2.5rem;
+  position: relative;
+  flex: 1;
   padding: 0.25rem 0.5rem 0.25rem 2rem;
-  color: white;
-  width: 100%;
-
   background-image: url("./icons/searchIcon.svg");
   background-size: 13px;
   background-repeat: no-repeat;
@@ -171,40 +176,48 @@ input[type="search"]::-webkit-search-cancel-button {
   cursor: pointer;
   height: 20px;
   width: 20px;
-  /* background-image: url("./icons/searchIcon.svg"); */
 }
 
 /* FILTER */
 .filter-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 2rem;
-  height: 100px;
-}
-
-.category-filter {
-  background-color: var(--card-black);
-}
-
-.status-filter, .category-filter {
-  background-color: var(--card-black);
-  padding: 0.5rem;
+  bottom: 8px;
+  height: max(40%, fit-content);
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  row-gap: 0.5rem;
+  padding: 0.5rem 0;
 }
 
-.secondaryLabel {
-  color: var(--gray);
-  margin: 0;
+.filter-section {
+  padding: 0.5rem 1rem;
+}
+
+.filter-label {
+  font-size: 16px;
+  color: var(--white);
+  margin: 0 0 1rem 0;
+}
+
+.inactive-label {
+  color: #A1A1A1;
+}
+
+.active-label {
+  color: var(--white);
+}
+
+.filter-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
 .form-check {
-  color: white !important;
+  /* color: white !important; */
   display: flex;
   flex-direction: row;
   column-gap: 0.5rem;
-  font-size: 16px;
+  font-size: 14px;
+  align-items: center;
 }
 
 /* OVERRIDE CHECKBOX STYLING */
@@ -234,4 +247,19 @@ input[type="search"]::-webkit-search-cancel-button {
 /* UTIl */
 .bold {
   font-weight: bold;
+}
+
+hr {
+  border: none;
+  width: calc(100% - 2rem);
+  height: 1px;
+  background-color: #4E4D4D;
+}
+
+.card-style {
+  position: absolute;
+  width: calc(100% - 8px);
+  border-radius: 20px;
+  background-color: var(--card-black);
+  backdrop-filter: blur(60px);
 }
