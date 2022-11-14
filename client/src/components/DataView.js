@@ -20,7 +20,7 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
-const TIME_RANGE = ["This year", "This month", "This week", "Today"];
+const TIME_RANGE = ["All time", "This year", "This month", "This week", "Today"];
 
 function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   return (
@@ -33,8 +33,9 @@ function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
             {TIME_RANGE.map((item, index) => {
               return (
                 <>
-                  {index > 0 && <hr></hr>}
+                  {index > 0 && <hr key={`${item}-hr`}></hr>}
                   <div
+                    key={item}
                     className={"dd-item"}
                     onClick={() => {
                       setTimeRange(item);
@@ -52,8 +53,7 @@ function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   );
 }
 
-export default function DataView({}) {
-  const [timeRange, setTimeRange] = useState(TIME_RANGE[0]);
+export default function DataView({timeRange, setTimeRange}) {
   const [toggleDD, setToggleDD] = useState(false);
   return (
     <div className="card card-style">
@@ -110,7 +110,7 @@ export default function DataView({}) {
           <div className="flexCol">
             {CATEGORY_OPTIONS.map((category) => {
               return (
-                <div className="flexCol-sm">
+                <div className="flexCol-sm" key={category}>
                   <div className="flexRow">
                     <p className="font-16">{category}</p>
                     <p className="font-16">45%</p>

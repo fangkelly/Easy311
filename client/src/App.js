@@ -68,6 +68,7 @@ function App() {
   const [filterStatus, setFilterStatus] = useState(STATUS_OPTIONS);
   const [filterCategory, setFilterCategory] = useState(CATEGORY_OPTIONS);
   const [search, setSearch] = useState("");
+  const [timeRange, setTimeRange] = useState("This week");
 
   const convertDate = (datetime) => {
     if (datetime) {
@@ -99,11 +100,12 @@ function App() {
 
   useEffect(() => {
     fetch(
-      `/data?status=${filterStatus}&category=${filterCategory}&search=${search}`
+      `/data?status=${filterStatus}&category=${filterCategory}&search=${search}&time=${timeRange}`
     )
       .then((res) => res.json())
       .then((data) => setData(data));
-  }, [filterStatus, filterCategory, search]);
+  }, [filterStatus, filterCategory, search, timeRange]);
+
 
   return (
     <div className="App">
@@ -126,7 +128,7 @@ function App() {
       </header>
       <div id={"map-container"}>
         <Map data={data} setPointData={setPointData} />
-        {dataView && <DataView />}
+        {dataView && <DataView timeRange={timeRange} setTimeRange={setTimeRange}/>}
 
         <Sheet
           isOpen={pointData ? true : false}
@@ -152,6 +154,7 @@ function App() {
                       if (convertedDate) {
                         return (
                           <VerticalTimelineElement
+                            key={time}
                             className="vertical-timeline-element"
                             contentStyle={{
                               background: "transparent",

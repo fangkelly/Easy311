@@ -7,6 +7,14 @@ const PORT = process.env.PORT || 3001;
 
 const app = express();
 
+const timeMap = {
+  "This year": 365,
+  "This month": 30,
+  "This week":7,
+  "Today":1,
+  "All time":36500
+}
+
 // Have Node serve the files for our built React app
 app.use(express.static(path.resolve(__dirname, "../client/build")));
 
@@ -24,13 +32,16 @@ app.get("/data", async (req, res, next) => {
 
   let search = req.query.search;
 
+  let time = timeMap[req.query.time];
+
 
   try {
     axios
       .get(
         // TODO: filter by search not working : search LIKE '% ${search} %'
+        // TODO: filter by time range
         `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE 
-        requested_datetime >= current_date - 7 AND 
+        requested_datetime >= current_date - ${time} AND 
         status IN ${status} AND service_name IN ${category} AND 
         media_url IS NOT NULL`
       )
