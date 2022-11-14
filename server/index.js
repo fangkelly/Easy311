@@ -38,7 +38,7 @@ app.get("/data", async (req, res, next) => {
   try {
     axios
       .get(
-        // TODO: filter by search not working : search LIKE '% ${search} %'
+        // TODO: filter by search not working : status LIKE '% ${search} %'
         `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE 
         requested_datetime >= current_date - ${time} AND 
         status IN ${status} AND service_name IN ${category} AND 
