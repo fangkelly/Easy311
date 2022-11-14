@@ -79,6 +79,13 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  row-gap: 1.5rem;
+  overflow: auto;
+}
+
+.data-section {
+  display: flex;
+  flex-direction: column;
   row-gap: 1rem;
 }
 
@@ -88,6 +95,95 @@ body {
   color: var(--white);
 }
 
+.nor-stat {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  column-gap: 1.5rem;
+  align-items: flex-end;
+}
+
+.nor-count {
+    font-size: 54px;
+    font-weight: bold;
+    color: white;
+    margin: 0
+}
+
+.trend {
+  display: flex;
+  flex-flow: row;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 0.5rem;
+}
+
+.nor-trend {
+  font-size: 24px;
+  margin:0;
+}
+
+.positive-trend {
+  color: green;
+}
+
+.negative-trend {
+  color: red;
+}
+
+.nor-sub {
+  font-size: 14px;
+  color: var(--gray);
+  margin: 0;
+}
+
+.dataView-filter {
+  display: flex;
+  flex-direction: row;
+  column-gap: 0.5rem;
+}
+
+/* #dataView-searchbar {
+} */
+
+#data-dd {
+  flex: 1;
+  position: relative;
+}
+
+.dd-toggle {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 2.5rem;
+  padding: 0 0.5rem;
+}
+
+.dd-toggle >* {
+  margin: 0;
+  font-size: 14px;
+}
+
+.dd-items {
+  top:3rem;
+  left:0;
+  position: absolute;
+  background-color: var(--card-black);
+  border: 1px solid rgb(255, 255, 255, 0.15);
+  color: white;
+  border-radius: 12px;
+  width: 100%;
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.5rem;
+}
+
+.dd-item {
+  padding: 0 1rem;
+}
+
 
 /* POINT DATA CARD */
 .react-modal-sheet-backdrop {
@@ -95,7 +191,7 @@ body {
   pointer-events: all !important;
 }
 .react-modal-sheet-container {
-  background: linear-gradient(180deg, rgba(26, 26, 26, .1), 0.5%, rgba(26, 26, 26, 100%));
+  background: linear-gradient(180deg, rgba(239, 239, 239, 0.5), 0.5%, rgba(26, 26, 26, 100%));
   z-index: 3;
   background-color: transparent !important;
 }
@@ -169,7 +265,7 @@ body {
   font-size: 16px;
 }
 
-#filterToggle, #searchBar {
+#filterToggle, #searchBar, #dataView-searchBar, #data-dd {
   background-color: var(--card-black);
   border: 1px solid rgb(255, 255, 255, 0.15);
   height: 2.5rem;
@@ -186,7 +282,7 @@ body {
 /* SEARCH BAR */
 input:focus {outline:none;}
 
-#searchBar {
+#searchBar, #dataView-searchBar {
   position: relative;
   flex: 1;
   padding: 0.25rem 0.5rem 0.25rem 2rem;
@@ -277,6 +373,13 @@ input[type="search"]::-webkit-search-cancel-button {
 hr {
   border: none;
   width: calc(100% - 2rem);
+  height: 1px;
+  background-color: #4E4D4D;
+}
+
+.dd-item > hr {
+  border: none;
+  width: calc(100%);
   height: 1px;
   background-color: #4E4D4D;
 }
