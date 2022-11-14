@@ -13,8 +13,28 @@ import Map from "./components/Map.js";
 import DataView from "./components/DataView";
 import Sheet from "react-modal-sheet";
 import Form from "react-bootstrap/Form";
+import {
+  VerticalTimeline,
+  VerticalTimelineElement,
+} from "react-vertical-timeline-component";
+import "react-vertical-timeline-component/style.min.css";
 
-const STATUS_OPTIONS = ['Open', 'Closed'];
+const MONTHS = {
+  "01": "January",
+  "02": "February",
+  "03": "March",
+  "04": "April",
+  "05": "May",
+  "06": "June",
+  "07": "July",
+  "08": "August",
+  "09": "September",
+  10: "October",
+  11: "November",
+  12: "December",
+};
+
+const STATUS_OPTIONS = ["Open", "Closed"];
 const CATEGORY_OPTIONS = [
   "Illegal Dumping",
   "Rubbish and Recycling",
@@ -49,12 +69,41 @@ function App() {
   const [filterCategory, setFilterCategory] = useState(CATEGORY_OPTIONS);
   const [search, setSearch] = useState("");
 
+  const convertDate = (datetime) => {
+    if (datetime) {
+      let dt = datetime.split("T");
+      let date = dt[0].split("-");
+      let time = dt[1].slice(0, -1).split(":");
+
+      date = `${MONTHS[date[1]]} ${date[2]}, ${date[0]}`;
+      let convertedTime, AM;
+
+      if (time[0] == 0) {
+        convertedTime = 12;
+        AM = true;
+      } else if (time[0] < 12) {
+        convertedTime = time[0];
+        AM = true;
+      } else {
+        convertedTime = 24 - time[0];
+        AM = false;
+      }
+
+      time[0] = convertedTime;
+      time = time.join(":");
+
+      return `${date} ${time} ${AM ? "AM" : "PM"}`;
+    }
+    return;
+  };
+
   useEffect(() => {
-    fetch(`/data?status=${filterStatus}&category=${filterCategory}&search=${search}`)
+    fetch(
+      `/data?status=${filterStatus}&category=${filterCategory}&search=${search}`
+    )
       .then((res) => res.json())
       .then((data) => setData(data));
   }, [filterStatus, filterCategory, search]);
-
 
   return (
     <div className="App">
@@ -89,9 +138,53 @@ function App() {
             <Sheet.Content>
               {
                 <div className="bottomSheet">
+                  <p className="backDrop-sub bold">{pointData?.properties?.service_name}</p>
                   <p className="backDrop-sub bold">Updates</p>
-                  <div className="updates">updates</div>
-                  <div className="comment">comment section</div>
+                  <VerticalTimeline lineColor={"#AAAAAA"}>
+                    {[
+                      "requested_datetime",
+                      "updated_datetime",
+                      "closed_datetime",
+                    ].map((time) => {
+                      let convertedDate = convertDate(
+                        pointData?.properties?.[time]
+                      );
+                      if (convertedDate) {
+                        return (
+                          <VerticalTimelineElement
+                            className="vertical-timeline-element"
+                            contentStyle={{
+                              background: "transparent",
+                              color: "#fff",
+                              padding: "0",
+                              border: "none",
+                              boxShadow: "none"
+                            }}
+                            contentArrowStyle={{
+                              display:"none",
+                            }}
+                            date={convertedDate}
+                            iconStyle={{
+                              background: "#AAAAAA",
+                              color: "#AAAAAA",
+                              boxShadow: "none",
+                              height: "14px",
+                              width: "14px",
+                              left: "11px"
+                            }}
+                          >
+                            <h4 className="vertical-timeline-element-subtitle">
+                              {time=="requested_datetime"?
+                              "Service request opened":
+                              time=="updated_datetime"?
+                              pointData.properties?.status_notes? pointData.properties.status_notes : "Service request updated" :
+                              "Service request closed"}
+                            </h4>
+                          </VerticalTimelineElement>
+                        );
+                      }
+                    })}
+                  </VerticalTimeline>
                 </div>
               }
             </Sheet.Content>

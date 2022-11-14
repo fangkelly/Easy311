@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback} from 'react';
 
+
 const CATEGORY_OPTIONS = [
     "Illegal Dumping",
     "Rubbish and Recycling",
