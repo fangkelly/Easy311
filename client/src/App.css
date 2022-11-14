@@ -71,6 +71,21 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  width: calc(100% - 8px);
+}
+
+.data-container {
+  padding: 2rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+}
+
+.data-title {
+  font-size: 20px;
+  margin: 0px;
+  color: var(--white);
 }
 
 
@@ -80,15 +95,21 @@ body {
   pointer-events: all !important;
 }
 .react-modal-sheet-container {
-  background: linear-gradient(180deg, rgba(26, 26, 26, 0.75), rgba(26, 26, 26, 0.95));
+  background: linear-gradient(180deg, rgba(26, 26, 26, .1), 0.5%, rgba(26, 26, 26, 100%));
   z-index: 3;
+  background-color: transparent !important;
 }
+
+
+
 .react-modal-sheet-header {
+  background-color: transparent !important;
 }
 .react-modal-sheet-drag-indicator {
-  /* custom styles */
+  color: #AAAAAA;
 }
 .react-modal-sheet-content {
+  background-color: transparent !important;
   /* custom styles */
 }
 
@@ -128,6 +149,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  background-color: transparent !important;
 
 }
 
@@ -258,7 +280,6 @@ hr {
 
 .card-style {
   position: absolute;
-  width: calc(100% - 8px);
   border-radius: 20px;
   background-color: var(--card-black);
   backdrop-filter: blur(60px);
