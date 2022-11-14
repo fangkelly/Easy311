@@ -2,6 +2,8 @@ html, body, #root {
   height: 100%;
 }
 
+p {margin: 0;}
+
 
 :root {
   --light-black: #222222;
@@ -72,6 +74,7 @@ body {
   flex-direction: column;
   justify-content: space-between;
   width: calc(100% - 8px);
+
 }
 
 .data-container {
@@ -80,6 +83,7 @@ body {
   display: flex;
   flex-direction: column;
   row-gap: 1.5rem;
+  height: calc(100% - 4rem);
   overflow: auto;
 }
 
@@ -157,7 +161,7 @@ body {
   justify-content: space-between;
   align-items: center;
   height: 2.5rem;
-  padding: 0 0.5rem;
+  padding: 0 1rem;
 }
 
 .dd-toggle >* {
@@ -182,6 +186,40 @@ body {
 
 .dd-item {
   padding: 0 1rem;
+}
+
+.rs-legend {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  color: var(--gray);
+  margin-bottom: 1rem;
+}
+
+
+.open-closed {
+  column-gap: 0.5rem;
+}
+
+.open-closed-itm {
+  column-gap: 0.25rem;
+}
+
+.progress-bar-container, .progress-bar {
+  width: 100%;
+  border-radius: 100px;
+  left: 0;
+  height: 8px;
+}
+
+.progress-bar-container {
+  background-color: #484848;
+}
+
+.progress-bar {
+  background-color: #48D89E;
+  width: 45%;
 }
 
 
@@ -390,3 +428,30 @@ hr {
   background-color: var(--card-black);
   backdrop-filter: blur(60px);
 }
+
+.font-16 {
+  font-size: 16px;
+  color: var(--white)
+}
+
+.flexRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flexCol {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  row-gap: 1rem;
+}
+
+.flexCol-sm {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  row-gap: 0.5rem;
+}
+

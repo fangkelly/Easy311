@@ -4,6 +4,7 @@ import {
   faCaretDown,
   faCaretUp,
   faChevronDown,
+  faCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
 const CATEGORY_OPTIONS = [
@@ -27,23 +28,25 @@ function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
       <div className="dd-toggle" onClick={(e) => setToggleDD(!toggleDD)}>
         <p>{timeRange}</p>
         <FontAwesomeIcon icon={faChevronDown} />
-        {toggleDD && <div className="dd-items">
-          {TIME_RANGE.map((item, index) => {
-            return (
-              <>
-                {index > 0 && <hr></hr>}
-                <div
-                  className={"dd-item"}
-                  onClick={() => {
-                    setTimeRange(item);
-                  }}
-                >
-                  {item}
-                </div>
-              </>
-            );
-          })}
-        </div>}
+        {toggleDD && (
+          <div className="dd-items">
+            {TIME_RANGE.map((item, index) => {
+              return (
+                <>
+                  {index > 0 && <hr></hr>}
+                  <div
+                    className={"dd-item"}
+                    onClick={() => {
+                      setTimeRange(item);
+                    }}
+                  >
+                    {item}
+                  </div>
+                </>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -71,19 +74,56 @@ export default function DataView({}) {
               id="dataView-searchBar"
               placeholder={"Search Neighborhood"}
             ></input>
-            
-              <DropDown
-                timeRange={timeRange}
-                setTimeRange={setTimeRange}
-                toggleDD={toggleDD}
-                setToggleDD={setToggleDD}
-              />
-            
+
+            <DropDown
+              timeRange={timeRange}
+              setTimeRange={setTimeRange}
+              toggleDD={toggleDD}
+              setToggleDD={setToggleDD}
+            />
           </div>
           <div style={{ height: "30vh" }}></div>
         </div>
         <div className="data-section">
           <p className="data-title">Requests Completed</p>
+          <div className="rs-legend">
+            <p className="nor-sub">Status of the service request</p>
+            <div className="open-closed flexRow">
+              <div className="open-closed-itm flexRow">
+                <FontAwesomeIcon
+                  icon={faCircle}
+                  size={"2xs"}
+                  color={"#484848"}
+                />
+                <p className="nor-sub">Opened</p>
+              </div>
+              <div className="open-closed-itm flexRow">
+                <FontAwesomeIcon
+                  icon={faCircle}
+                  size={"2xs"}
+                  color={"#48D89E"}
+                />
+                <p className="nor-sub">Closed</p>
+              </div>
+            </div>
+          </div>
+          <div className="flexCol">
+            {CATEGORY_OPTIONS.map((category) => {
+              return (
+                <div className="flexCol-sm">
+                  <div className="flexRow">
+                    <p className="font-16">{category}</p>
+                    <p className="font-16">45%</p>
+                  </div>
+                  <div className="progress-bar-container">
+                    <div className="progress-bar"></div>
+                  </div>
+                  <p className="nor-sub"> Average Closed Time: 21 Days</p>
+                  <p className="nor-sub"> Agency Responsible: Streets Department</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
