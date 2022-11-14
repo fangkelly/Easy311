@@ -39,11 +39,11 @@ app.get("/data", async (req, res, next) => {
     axios
       .get(
         // TODO: filter by search not working : search LIKE '% ${search} %'
-        // TODO: filter by time range
         `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE 
         requested_datetime >= current_date - ${time} AND 
         status IN ${status} AND service_name IN ${category} AND 
-        media_url IS NOT NULL`
+        media_url IS NOT NULL
+        `
       )
       .then((response) =>
         res.json(response.data.features.filter((d) => d.geometry !== null))
