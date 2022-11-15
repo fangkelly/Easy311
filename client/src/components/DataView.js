@@ -68,6 +68,7 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
   const [toggleDD, setToggleDD] = useState(false);
   const [geocodingRes, setGeocodingRes] = useState([]);
   const [locationSearch, setLocationSearch] = useState(null);
+  const [inputFocus, setInputFocus] = useState(false);
 
   useEffect(() => {
     forwardGeocoding(locationSearch);
@@ -97,7 +98,7 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
       <div className="data-container">
         <div className="data-section">
           <p className="nor-name">
-            {neighborhood ? neighborhood.properties.listname : "Philadelphia"}
+            {neighborhood ? (neighborhood?.properties?.listname || neighborhood?.place_name.split(',')[0]) : "Philadelphia"}
           </p>
         </div>
         <div className="data-section">
@@ -114,11 +115,17 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
             <div style={{ position: "relative" }}>
               <input
                 type="search"
+                value={neighborhood?.properties?.listname || neighborhood?.place_name.split(',')[0] || locationSearch}
                 id="dataView-searchBar"
                 placeholder={"Search Neighborhood"}
-                onChange={(e) => setLocationSearch(e.target.value)}
+                onChange={(e) => {
+                  setNeighborhood(null);
+                  setLocationSearch(e.target.value);
+                }
+              }
+                onFocus={(e) => setInputFocus(true)}
               ></input>
-              {geocodingRes.length > 0 && (
+              {geocodingRes.length > 0 && inputFocus && (
                 <div className={"dd-items"}>
                   {geocodingRes.map((res, index) => {
                     return (
@@ -126,7 +133,10 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
                         {index > 0 && <hr key={`${res}-hr`}></hr>}
                         <div className="dd-item"
                           // TODO: figure out setNeighborhood logic
-                          // onClick={(e)=>{setNeighborhood(res)}}
+                          onClick={()=>{
+                            setNeighborhood(res);
+                            setInputFocus(false);
+                          }}
                         >
                           {res.place_name.split(",")[0]}
                         </div>
