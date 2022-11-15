@@ -24,13 +24,12 @@ const NAV_CONTROL_STYLE = {
 export default function Map({ data, setPointData, setNeighborhood, setDataView }) {
   const [initialViewState, setInitialViewState] = useState(INITIAL_VIEW_STATE);
 
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
+  // useEffect(() => {
+  //   console.log(data);
+  // }, [data]);
 
   const flyToClick = useCallback((coords, obj) => {
     setPointData(obj);
-    console.log(obj);
     setInitialViewState({
       longitude: coords[0],
       latitude: coords[1],

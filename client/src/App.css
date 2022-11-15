@@ -218,13 +218,16 @@ body {
   height: 8px;
 }
 
-.progress-bar-container {
+.progress-bar-container.active {
   background-color: #484848;
+}
+
+.progress-bar-container.inactive {
+  background-color: #42424287;
 }
 
 .progress-bar {
   background-color: #48D89E;
-  width: 45%;
 }
 
 

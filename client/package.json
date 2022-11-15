@@ -20,7 +20,9 @@
     "framer-motion":"7.6.4",
     "react-modal-sheet":"1.8.1",
     "react-bootstrap":"2.6.0",
-    "react-vertical-timeline-component":"3.5.2"
+    "react-vertical-timeline-component":"3.5.2",
+    "@turf/turf": "^6.5.0",
+    "@turf/boolean-point-in-polygon":"6.5.0"
   },
   "scripts": {
     "start": "react-scripts start",

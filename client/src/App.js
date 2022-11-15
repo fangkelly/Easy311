@@ -20,6 +20,11 @@ import {
 } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
 
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
+import { point } from "@turf/helpers";
+
+import neighborhoods from "./data/neighborhoods.json";
+
 const MONTHS = {
   "01": "January",
   "02": "February",
@@ -48,6 +53,8 @@ const CATEGORY_OPTIONS = [
   "Street Trees",
   "Other",
 ];
+
+const NEIGHBORHOODS = neighborhoods;
 
 const convertDate = (datetime) => {
   if (datetime) {
@@ -91,6 +98,7 @@ const convertDate = (datetime) => {
 
 function App() {
   const [data, setData] = useState(null);
+  const [analysisData, setAnalysisData] = useState(null);
   const [dataView, setDataView] = useState(false);
   const [toggleFilter, setToggleFilter] = useState(false);
   const [pointData, setPointData] = useState(false);
@@ -99,12 +107,17 @@ function App() {
   const [search, setSearch] = useState("");
   const [timeRange, setTimeRange] = useState("This week");
   const [neighborhood, setNeighborhood] = useState(null);
-  const [coordDict, setCoordDict] = useState();
 
-  useEffect(() => {
-    console.log("neighborhood ", neighborhood);
-  }, [neighborhood])
+  let emptySet = new Set();
 
+  // keeps track of all points we've seen and processed
+  const [points, setPoints] = useState(emptySet);
+
+  // maps hashed coordinate string keys to point objects representing individual service request
+  const [coordDict, setCoordDict] = useState({});
+
+  // maps neighborhoods to all points that within time frame inside the neighborhood 
+  const [neighborhoodDict, setNeighborhoodDict] = useState({});
 
   useEffect(() => {
     fetch(
@@ -113,6 +126,41 @@ function App() {
       .then((res) => res.json())
       .then((data) => setData(data));
   }, [filterStatus, filterCategory, search, timeRange]);
+
+  useEffect(() => {
+    fetch(`/analysis_data?time=${timeRange}`)
+      .then((res) => res.json())
+      .then((data) => setAnalysisData(data));
+  }, [timeRange]);
+
+  useEffect(() => {
+    if (analysisData) {
+      let newCoordDict = coordDict;
+      let newNeighborhoodDict = {};
+      analysisData.map((d) => {
+        const key = d.geometry.coordinates.toString();
+        if (!points.has(key)) {
+          newCoordDict[key] = d;
+          // cache seen point
+          points.add(key);
+        }
+        const coord = point(d.geometry.coordinates);
+        for (let i = 0; i < neighborhoods.features.length; i++) {
+          const nkey = neighborhoods.features[i].properties.listname;
+          if (booleanPointInPolygon(coord, neighborhoods.features[i])) {
+            if (newNeighborhoodDict[nkey]) {
+              newNeighborhoodDict[nkey].push(key);
+            } else {
+              newNeighborhoodDict[nkey] = [key];
+            }
+            setNeighborhoodDict(newNeighborhoodDict);
+            break;
+          }
+        }
+      });
+      setCoordDict(newCoordDict);
+    }
+  }, [analysisData]);
 
   return (
     <div className="App">
@@ -134,9 +182,21 @@ function App() {
         </div>
       </header>
       <div id={"map-container"}>
-        <Map data={data} setDataView={setDataView} setPointData={setPointData} setNeighborhood={setNeighborhood} />
+        <Map
+          data={data}
+          setDataView={setDataView}
+          setPointData={setPointData}
+          setNeighborhood={setNeighborhood}
+        />
         {dataView && (
-          <DataView timeRange={timeRange} setTimeRange={setTimeRange} neighborhood={neighborhood} setNeighborhood={setNeighborhood} />
+          <DataView
+            timeRange={timeRange}
+            setTimeRange={setTimeRange}
+            neighborhood={neighborhood}
+            setNeighborhood={setNeighborhood}
+            coordDict={coordDict}
+            neighborhoodDict={neighborhoodDict}
+          />
         )}
 
         <Sheet

@@ -8,6 +8,11 @@ import {
   faCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
+import { point } from "@turf/helpers";
+import neighborhoods from "../data/neighborhoods.json";
+
+
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
 const PHL_BBOX = "-75.353877, 39.859018, -74.92068962905012, 40.14958609050669";
@@ -25,6 +30,8 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
+const CATEGORY_MINUS_OTHER = CATEGORY_OPTIONS.filter(category => category != "Other");
+
 const TIME_RANGE = [
   "All time",
   "This year",
@@ -32,6 +39,9 @@ const TIME_RANGE = [
   "This week",
   "Today",
 ];
+
+const NEIGHBORHOODS = neighborhoods;
+
 
 function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   return (
@@ -64,16 +74,51 @@ function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   );
 }
 
-export default function DataView({ timeRange, setTimeRange, neighborhood, setNeighborhood }) {
+export default function DataView({ timeRange, setTimeRange, neighborhood, setNeighborhood, coordDict, neighborhoodDict }) {
   const [toggleDD, setToggleDD] = useState(false);
   const [geocodingRes, setGeocodingRes] = useState([]);
   const [locationSearch, setLocationSearch] = useState(null);
   const [inputFocus, setInputFocus] = useState(false);
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     forwardGeocoding(locationSearch);
-    console.log(geocodingRes);
   }, [locationSearch]);
+
+
+  // TODO: get stats
+  useEffect(() => {
+
+
+    let serviceStats = {};
+    let total = 0;
+
+
+    if (neighborhood) {
+      let subset = neighborhoodDict[neighborhood.properties.listname];
+      
+      // TODO: handle citywide case
+      if (subset) {
+        for (const coord of subset) {
+          total += 1;
+          const info = coordDict[coord];
+          let key = info.properties.service_name;
+          if (!CATEGORY_MINUS_OTHER.includes(key)) {
+            key = "Other";
+          }
+          if (serviceStats[key]) {
+            serviceStats[key].Total += 1;
+            serviceStats[key][info.properties.status] += 1;
+          } else {
+            serviceStats[key] = { Total : 1, Open: 0, Closed: 0};
+          }
+        }
+
+        setStats({"serviceStats":serviceStats, "total": total})
+      }
+    }
+
+  }, [neighborhood, timeRange])
 
   const forwardGeocoding = () => {
     // const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=false&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=place,address,district,postcode,neighborhood,locality`;
@@ -98,7 +143,7 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
       <div className="data-container">
         <div className="data-section">
           <p className="nor-name">
-            {neighborhood ? (neighborhood?.properties?.listname || neighborhood?.place_name.split(',')[0]) : "Philadelphia"}
+            {neighborhood ? (neighborhood?.properties?.listname) : "Philadelphia"}
           </p>
         </div>
         <div className="data-section">
@@ -134,7 +179,14 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
                         <div className="dd-item"
                           // TODO: figure out setNeighborhood logic
                           onClick={()=>{
-                            setNeighborhood(res);
+                            const coord = res.center;
+                            for (let i = 0; i < neighborhoods.features.length; i++) {
+                              if (booleanPointInPolygon(coord, neighborhoods.features[i])) {
+                                setNeighborhood(neighborhoods.features[i])
+                                setInputFocus(false);
+                                break
+                              }
+                            }
                             setInputFocus(false);
                           }}
                         >
@@ -181,14 +233,20 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
           </div>
           <div className="flexCol">
             {CATEGORY_OPTIONS.map((category) => {
+              let perc_resolved;
+              if (stats?.serviceStats[category]) {
+                perc_resolved = (100* stats.serviceStats[category].Closed / stats.serviceStats[category].Total).toFixed(2);
+              } else {
+                perc_resolved = -1;
+              }
               return (
                 <div className="flexCol-sm" key={category}>
                   <div className="flexRow">
                     <p className="font-16">{category}</p>
-                    <p className="font-16">45%</p>
+                    <p className="font-16">{perc_resolved>-1?`${perc_resolved}%`: 'NA'}</p>
                   </div>
-                  <div className="progress-bar-container">
-                    <div className="progress-bar"></div>
+                  <div className={`progress-bar-container ${perc_resolved>-1?'active':'inactive'}`}>
+                    <div className="progress-bar" style={{width:`${perc_resolved>-1?`${Math.round(perc_resolved)}%`:0}`}}></div>
                   </div>
                   <p className="nor-sub"> Average Closed Time: 21 Days</p>
                   <p className="nor-sub">
