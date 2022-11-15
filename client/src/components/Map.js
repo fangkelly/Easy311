@@ -54,6 +54,7 @@ export default function Map({ data, setPointData, setNeighborhood, setDataView }
       pickable: true,
       onClick: (info, event) => {
         setDataView(true);
+        // figure out setNeighborhood logic
         setNeighborhood(info.object);
       }
     }),

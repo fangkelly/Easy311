@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCaretDown,
@@ -6,6 +7,10 @@ import {
   faChevronDown,
   faCircle,
 } from "@fortawesome/free-solid-svg-icons";
+
+const MAPBOX_ACCESS_TOKEN =
+  "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
+const PHL_BBOX = "-75.353877, 39.859018, -74.92068962905012, 40.14958609050669";
 
 const CATEGORY_OPTIONS = [
   "Illegal Dumping",
@@ -20,7 +25,13 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
-const TIME_RANGE = ["All time", "This year", "This month", "This week", "Today"];
+const TIME_RANGE = [
+  "All time",
+  "This year",
+  "This month",
+  "This week",
+  "Today",
+];
 
 function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   return (
@@ -53,13 +64,41 @@ function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   );
 }
 
-export default function DataView({timeRange, setTimeRange, neighborhood}) {
+export default function DataView({ timeRange, setTimeRange, neighborhood, setNeighborhood }) {
   const [toggleDD, setToggleDD] = useState(false);
+  const [geocodingRes, setGeocodingRes] = useState([]);
+  const [locationSearch, setLocationSearch] = useState(null);
+
+  useEffect(() => {
+    forwardGeocoding(locationSearch);
+    console.log(geocodingRes);
+  }, [locationSearch]);
+
+  const forwardGeocoding = () => {
+    // const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=false&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=place,address,district,postcode,neighborhood,locality`;
+    const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=neighborhood`;
+
+    axios
+      .get(endpoint, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then((res) => {
+        setGeocodingRes(res.data.features);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
     <div className="card card-style">
       <div className="data-container">
-      <div className="data-section">
-          <p className="nor-name">{neighborhood?neighborhood.properties.listname:"Philadelphia"}</p>
+        <div className="data-section">
+          <p className="nor-name">
+            {neighborhood ? neighborhood.properties.listname : "Philadelphia"}
+          </p>
         </div>
         <div className="data-section">
           <p className="data-title">Number of Requests</p>
@@ -72,11 +111,31 @@ export default function DataView({timeRange, setTimeRange, neighborhood}) {
           </div>
           <p className="nor-sub">compared to last year</p>
           <div className="dataView-filter">
-            <input
-              type="search"
-              id="dataView-searchBar"
-              placeholder={"Search Neighborhood"}
-            ></input>
+            <div style={{ position: "relative" }}>
+              <input
+                type="search"
+                id="dataView-searchBar"
+                placeholder={"Search Neighborhood"}
+                onChange={(e) => setLocationSearch(e.target.value)}
+              ></input>
+              {geocodingRes.length > 0 && (
+                <div className={"dd-items"}>
+                  {geocodingRes.map((res, index) => {
+                    return (
+                      <>
+                        {index > 0 && <hr key={`${res}-hr`}></hr>}
+                        <div className="dd-item"
+                          // TODO: figure out setNeighborhood logic
+                          // onClick={(e)=>{setNeighborhood(res)}}
+                        >
+                          {res.place_name.split(",")[0]}
+                        </div>
+                      </>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <DropDown
               timeRange={timeRange}
@@ -122,7 +181,10 @@ export default function DataView({timeRange, setTimeRange, neighborhood}) {
                     <div className="progress-bar"></div>
                   </div>
                   <p className="nor-sub"> Average Closed Time: 21 Days</p>
-                  <p className="nor-sub"> Agency Responsible: Streets Department</p>
+                  <p className="nor-sub">
+                    {" "}
+                    Agency Responsible: Streets Department
+                  </p>
                 </div>
               );
             })}

@@ -99,6 +99,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [timeRange, setTimeRange] = useState("This week");
   const [neighborhood, setNeighborhood] = useState(null);
+  const [coordDict, setCoordDict] = useState();
 
   useEffect(() => {
     console.log("neighborhood ", neighborhood);
@@ -135,7 +136,7 @@ function App() {
       <div id={"map-container"}>
         <Map data={data} setDataView={setDataView} setPointData={setPointData} setNeighborhood={setNeighborhood} />
         {dataView && (
-          <DataView timeRange={timeRange} setTimeRange={setTimeRange} neighborhood={neighborhood} />
+          <DataView timeRange={timeRange} setTimeRange={setTimeRange} neighborhood={neighborhood} setNeighborhood={setNeighborhood} />
         )}
 
         <Sheet
