@@ -131,7 +131,7 @@ function App() {
     fetch(`/analysis_data?time=${timeRange}`)
       .then((res) => res.json())
       .then((data) => setAnalysisData(data));
-  }, [timeRange]);
+  }, [timeRange, neighborhood]);
 
   useEffect(() => {
     if (analysisData) {

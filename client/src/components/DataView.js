@@ -56,7 +56,7 @@ function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
                 <>
                   {index > 0 && <hr key={`${item}-hr`}></hr>}
                   <div
-                    key={item}
+                    key={`${item}-dd`}
                     className={"dd-item"}
                     onClick={() => {
                       setTimeRange(item);
@@ -96,9 +96,9 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
 
     if (neighborhood) {
       let subset = neighborhoodDict[neighborhood.properties.listname];
-      
       // TODO: handle citywide case
       if (subset) {
+        console.log("trigger recalculation of stats")
         for (const coord of subset) {
           total += 1;
           const info = coordDict[coord];
@@ -114,11 +114,10 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
           }
         }
 
-        setStats({"serviceStats":serviceStats, "total": total})
+        setStats(stats => {return {...stats, "serviceStats":serviceStats, "total": total}})
       }
     }
-
-  }, [neighborhood, timeRange])
+  }, [neighborhoodDict])
 
   const forwardGeocoding = () => {
     // const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=false&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=place,address,district,postcode,neighborhood,locality`;
