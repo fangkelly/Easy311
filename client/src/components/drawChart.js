@@ -28,7 +28,6 @@ const drawChart = (element, data) => {
     .attr("transform", `translate(${boxSize / 2}, ${boxSize / 2})`);
 
   const maxValue = data.reduce((cur, val) => Math.max(cur, val[1].Total), 0);
-  console.log("maxValue ", maxValue);
   const arcGenerator = d3
     .arc()
     .padAngle(0.02)

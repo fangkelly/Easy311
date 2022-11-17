@@ -54,6 +54,10 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
+const CATEGORY_MINUS_OTHER = CATEGORY_OPTIONS.filter(
+  (category) => category != "Other"
+);
+
 const NEIGHBORHOODS = neighborhoods;
 
 const convertDate = (datetime) => {
@@ -107,6 +111,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [timeRange, setTimeRange] = useState("This week");
   const [neighborhood, setNeighborhood] = useState(null);
+  const [stats, setStats] = useState(null);
 
   let emptySet = new Set();
 
@@ -114,29 +119,18 @@ function App() {
   const [points, setPoints] = useState(emptySet);
 
   // maps hashed coordinate string keys to point objects representing individual service request
-  const [coordDict, setCoordDict] = useState({});
+  // maps neighborhoods to all points that within time frame inside the neighborhood
+  // const [coordDict, setCoordDict] = useState({});
+  // const [neighborhoodDict, setNeighborhoodDict] = useState({});
 
-  // maps neighborhoods to all points that within time frame inside the neighborhood 
-  const [neighborhoodDict, setNeighborhoodDict] = useState({});
+  const [dataDict, setDataDict] = useState({
+    coordDict: {},
+    neighborhoodDict: {},
+  });
 
-  useEffect(() => {
-    fetch(
-      `/data?status=${filterStatus}&category=${filterCategory}&search=${search}&time=${timeRange}`
-    )
-      .then((res) => res.json())
-      .then((data) => setData(data));
-  }, [filterStatus, filterCategory, search, timeRange]);
-
-  useEffect(() => {
-    fetch(`/analysis_data?time=${timeRange}`)
-      .then((res) => res.json())
-      .then((data) => setAnalysisData(data));
-  }, [timeRange]);
-
-
-  useEffect(() => {
+  const createDicts = (analysisData) => {
     if (analysisData) {
-      let newCoordDict = coordDict;
+      let newCoordDict = dataDict.coordDict;
       let newNeighborhoodDict = {};
       analysisData.map((d) => {
         const key = d.geometry.coordinates.toString();
@@ -154,14 +148,84 @@ function App() {
             } else {
               newNeighborhoodDict[nkey] = [key];
             }
-            setNeighborhoodDict(newNeighborhoodDict);
             break;
           }
         }
       });
-      setCoordDict(newCoordDict);
+      setDataDict({
+        coordDict: newCoordDict,
+        neighborhoodDict: newNeighborhoodDict,
+      });
     }
-  }, [analysisData]);
+  };
+
+  useEffect(() => {
+    fetch(
+      `/data?status=${filterStatus}&category=${filterCategory}&search=${search}&time=${timeRange}`
+    )
+      .then((res) => res.json())
+      .then((data) => setData(data));
+  }, [filterStatus, filterCategory, search, timeRange]);
+
+  useEffect(() => {
+    fetch(`/analysis_data?time=${timeRange}`)
+      .then((res) => res.json())
+      .then((data) => createDicts(data))
+      .then((d)=> console.log("finished 1"))
+  }, [timeRange]);
+
+  // TODO: get stats
+  useEffect(() => {
+    let serviceStats = {};
+    let total = 0;
+
+    if (neighborhood) {
+      let subset = dataDict.neighborhoodDict[neighborhood.properties.listname];
+      if (subset) {
+        for (const coord of subset) {
+          total += 1;
+          const info = dataDict.coordDict[coord];
+          let key = info.properties.service_name;
+          if (!CATEGORY_MINUS_OTHER.includes(key)) {
+            key = "Other";
+          }
+          if (serviceStats[key]) {
+            serviceStats[key].Total += 1;
+            serviceStats[key][info.properties.status] += 1;
+          } else {
+            serviceStats[key] = { Total: 1, Open: 0, Closed: 0 };
+          }
+        }
+
+        setStats((stats) => {
+          return { ...stats, serviceStats: serviceStats, total: total };
+        });
+      }
+    } else {
+      // when no neighborhood is chosen, calculate citywide stats
+      for (const [k, v] of Object.entries(dataDict.neighborhoodDict)) {
+        for (const coord of v) {
+          total += 1;
+          const info = dataDict.coordDict[coord];
+          let key = info.properties.service_name;
+          if (!CATEGORY_MINUS_OTHER.includes(key)) {
+            key = "Other";
+          }
+          if (serviceStats[key]) {
+            serviceStats[key].Total += 1;
+            serviceStats[key][info.properties.status] += 1;
+          } else {
+            serviceStats[key] = { Total: 1, Open: 0, Closed: 0 };
+          }
+        }
+      }
+
+      setStats((stats) => {
+        return { ...stats, serviceStats: serviceStats, total: total };
+      });
+    }
+    console.log("finished 2");
+  }, [dataDict.neighborhoodDict, neighborhood]);
 
   return (
     <div className="App">
@@ -196,8 +260,9 @@ function App() {
             setTimeRange={setTimeRange}
             neighborhood={neighborhood}
             setNeighborhood={setNeighborhood}
-            coordDict={coordDict}
-            neighborhoodDict={neighborhoodDict}
+            coordDict={dataDict.coordDict}
+            neighborhoodDict={dataDict.neighborhoodDict}
+            stats={stats}
           />
         )}
 

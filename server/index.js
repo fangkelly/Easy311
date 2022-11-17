@@ -43,13 +43,17 @@ app.get("/data", async (req, res, next) => {
   category = `(${category.split(',').map((item)=>{return `'${item}'`}).join(', ')})`;
   allCategory_plus_infoReq = `(${ALL_CATEGORY_OPTIONS.map((item)=>{return `'${item}'`}).join(', ')})`;
   const includeOther = category.includes("Other");
+
+  console.log(includeOther);
+
   
   let search = req.query.search;
 
   let time = timeMap[req.query.time];
 
-  let url = `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE requested_datetime >= current_date - ${time} AND status IN ${status} AND (service_name IN ${category} ${includeOther&&`OR service_name NOT IN ${allCategory_plus_infoReq}`})`
+  let url = `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE requested_datetime >= current_date - ${time} AND status IN ${status} AND (service_name IN ${category} ${includeOther?`OR service_name NOT IN ${allCategory_plus_infoReq}`:''})`
 
+  console.log(url)
 
 
 
@@ -63,7 +67,7 @@ app.get("/data", async (req, res, next) => {
         res.json(response.data.features.filter((d) => d.geometry !== null))
       )
       .catch((error) => {
-        console.log(error);
+        console.log("error");
       });
   } catch (err) {
     next(err);

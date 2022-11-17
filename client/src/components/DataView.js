@@ -31,9 +31,6 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
-const CATEGORY_MINUS_OTHER = CATEGORY_OPTIONS.filter(
-  (category) => category != "Other"
-);
 
 const TIME_RANGE = [
   "All time",
@@ -59,10 +56,13 @@ const pointInNeighborhood = (coord) => {
   return null;
 };
 
-function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
+function DropDown({ timeRange, setTimeRange }) {
+  const [toggleDD, setToggleDD] = useState(false)
   return (
     <div id="data-dd">
-      <div className="dd-toggle" onClick={(e) => setToggleDD(!toggleDD)}>
+      <div className="dd-toggle" onClick={(e) => {
+        setToggleDD(!toggleDD);
+      }}>
         <p>{timeRange}</p>
         <FontAwesomeIcon icon={faChevronDown} />
         {toggleDD && (
@@ -90,80 +90,15 @@ function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   );
 }
 
-export default function DataView({
-  timeRange,
-  setTimeRange,
-  neighborhood,
-  setNeighborhood,
-  coordDict,
-  neighborhoodDict,
-}) {
-  const [toggleDD, setToggleDD] = useState(false);
+function SearchBox ({neighborhood, setNeighborhood}) {
+  const [inputFocus, setInputFocus] = useState(false);
   const [geocodingRes, setGeocodingRes] = useState([]);
   const [locationSearch, setLocationSearch] = useState(null);
-  const [inputFocus, setInputFocus] = useState(false);
-  const [stats, setStats] = useState(null);
 
-
- 
   useEffect(() => {
     forwardGeocoding(locationSearch);
   }, [locationSearch]);
 
-  // TODO: get stats
-  useEffect(() => {
-    let serviceStats = {};
-    let total = 0;
-
-    if (neighborhood) {
-      let subset = neighborhoodDict[neighborhood.properties.listname];
-      // TODO: handle citywide case
-      if (subset) {
-        for (const coord of subset) {
-          total += 1;
-          const info = coordDict[coord];
-          let key = info.properties.service_name;
-          if (!CATEGORY_MINUS_OTHER.includes(key)) {
-            key = "Other";
-          }
-          if (serviceStats[key]) {
-            serviceStats[key].Total += 1;
-            serviceStats[key][info.properties.status] += 1;
-          } else {
-            serviceStats[key] = { Total: 1, Open: 0, Closed: 0 };
-          }
-        }
-
-        setStats((stats) => {
-          return { ...stats, serviceStats: serviceStats, total: total };
-        });
-      }
-    } else {
-      // when no neighborhood is chosen, calculate citywide stats
-      console.log("triggered recalculation of citywide stats");
-
-      for (const [k, v] of Object.entries(neighborhoodDict)) {
-        for (const coord of v) {
-          total += 1;
-          const info = coordDict[coord];
-          let key = info.properties.service_name;
-          if (!CATEGORY_MINUS_OTHER.includes(key)) {
-            key = "Other";
-          }
-          if (serviceStats[key]) {
-            serviceStats[key].Total += 1;
-            serviceStats[key][info.properties.status] += 1;
-          } else {
-            serviceStats[key] = { Total: 1, Open: 0, Closed: 0 };
-          }
-        }
-      }
-
-      setStats((stats) => {
-        return { ...stats, serviceStats: serviceStats, total: total };
-      });
-    }
-  }, [neighborhoodDict, neighborhood]);
 
   const forwardGeocoding = () => {
     const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=place,address,district,postcode,neighborhood,locality`;
@@ -189,27 +124,7 @@ export default function DataView({
   };
 
   return (
-    <div className="card card-style">
-      <div id="data-container">
-        <div className="data-section">
-          <p className="nor-name">
-            {neighborhood ? neighborhood?.properties?.listname : "Philadelphia"}
-          </p>
-        </div>
-        <div className="data-section">
-          <p className="data-title">Number of Requests</p>
-          <div className="nor-stat">
-            <p className="nor-count">
-              {stats?.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-            </p>
-            <div className={"negative-trend trend"}>
-              <FontAwesomeIcon icon={faCaretUp} size={"2xl"} />
-              <p className="nor-trend">12%</p>
-            </div>
-          </div>
-          <p className="nor-sub">compared to last year</p>
-          <div className="dataView-filter">
-            <div style={{ position: "relative" }}>
+    <div style={{ position: "relative" }}>
               <input
                 type="search"
                 value={
@@ -246,18 +161,53 @@ export default function DataView({
                 </div>
               )}
             </div>
+  )
+}
+
+export default function DataView({
+  timeRange,
+  setTimeRange,
+  neighborhood,
+  setNeighborhood,
+  coordDict,
+  neighborhoodDict,
+  stats
+}) {
+
+
+
+
+
+  return (
+    <div className="card card-style">
+      <div id="data-container">
+        <div className="data-section">
+          <p className="nor-name">
+            {neighborhood ? neighborhood?.properties?.listname : "Philadelphia"}
+          </p>
+        </div>
+        <div className="data-section">
+          <p className="data-title">Number of Requests</p>
+          <div className="nor-stat">
+            <p className="nor-count">
+              {stats?.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+            </p>
+            <div className={"negative-trend trend"}>
+              <FontAwesomeIcon icon={faCaretUp} size={"2xl"} />
+              <p className="nor-trend">12%</p>
+            </div>
+          </div>
+          <p className="nor-sub">compared to last year</p>
+          <div className="dataView-filter">
+            <SearchBox neighborhood={neighborhood} setNeighborhood={setNeighborhood} />
 
             <DropDown
               timeRange={timeRange}
               setTimeRange={setTimeRange}
-              toggleDD={toggleDD}
-              setToggleDD={setToggleDD}
             />
           </div>
-          <div style={{padding:"1rem"}}>
-            {stats &&  <DonutChart
-              data={Object.entries(stats?.serviceStats)}
-            />}
+          <div style={{ padding: "1rem" }}>
+            {stats && <DonutChart data={Object.entries(stats?.serviceStats)} />}
           </div>
         </div>
         <div className="data-section">
