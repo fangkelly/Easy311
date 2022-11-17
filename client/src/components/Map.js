@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { StaticMap, MapContext, NavigationControl } from "react-map-gl";
 import DeckGL, { GeoJsonLayer, FlyToInterpolator } from "deck.gl";
 import neighborhoods from "../data/neighborhoods.json";
+import center from "@turf/center";
+import { polygon } from "@turf/helpers";
 
 const INITIAL_VIEW_STATE = {
   latitude: 40,
@@ -14,26 +16,34 @@ const INITIAL_VIEW_STATE = {
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
-const MAP_STYLE = "mapbox://styles/fangk/cl9wdl7xy000414mj5xk8899r";
+const MAP_STYLE = "mapbox://styles/fangk/clajv6ki9001z14nyv0bhi16q";
 const NAV_CONTROL_STYLE = {
   position: "absolute",
   bottom: 100,
   right: 10,
 };
 
-export default function Map({ data, setPointData, setNeighborhood, setDataView }) {
+export default function Map({
+  data,
+  setPointData,
+  neighborhood,
+  setNeighborhood,
+  setDataView,
+}) {
   const [initialViewState, setInitialViewState] = useState(INITIAL_VIEW_STATE);
 
-  // useEffect(() => {
-  //   console.log(data);
-  // }, [data]);
+  useEffect(() => {
+    if (neighborhood) {
+      flyToClick(center(polygon(neighborhood.geometry.coordinates[0])).geometry.coordinates, null, 13);
+    }
+  }, [neighborhood]);
 
-  const flyToClick = useCallback((coords, obj) => {
-    setPointData(obj);
+  const flyToClick = useCallback((coords, obj = null, zoom = 15) => {
+    if (obj) setPointData(obj);
     setInitialViewState({
       longitude: coords[0],
       latitude: coords[1],
-      zoom: 15,
+      zoom: zoom,
       transitionDuration: 1000,
       transitionInterpolator: new FlyToInterpolator(),
     });
@@ -48,14 +58,23 @@ export default function Map({ data, setPointData, setNeighborhood, setDataView }
       getLineWidth: 20,
       filled: true,
       wireframe: true,
-      getFillColor: [128,128,128,0],
+      getFillColor: [128, 128, 128, 0],
       getLineColor: [255, 255, 255],
       pickable: true,
       onClick: (info, event) => {
         setDataView(true);
         // figure out setNeighborhood logic
         setNeighborhood(info.object);
-      }
+      },
+    }),
+
+    new GeoJsonLayer({
+      id: "neighborhoods", // layer id
+      data: neighborhood , // data formatted as array of objects
+      stroked: true,
+      getLineWidth: 30,
+      getFillColor: [128, 128, 128, 0],
+      getLineColor: [152, 231, 231],
     }),
 
     new GeoJsonLayer({

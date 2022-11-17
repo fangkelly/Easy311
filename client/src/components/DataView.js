@@ -9,9 +9,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
-import { point } from "@turf/helpers";
+import { point, polygon } from "@turf/helpers";
 import neighborhoods from "../data/neighborhoods.json";
-
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
@@ -30,7 +29,9 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
-const CATEGORY_MINUS_OTHER = CATEGORY_OPTIONS.filter(category => category != "Other");
+const CATEGORY_MINUS_OTHER = CATEGORY_OPTIONS.filter(
+  (category) => category != "Other"
+);
 
 const TIME_RANGE = [
   "All time",
@@ -42,6 +43,19 @@ const TIME_RANGE = [
 
 const NEIGHBORHOODS = neighborhoods;
 
+const pointInNeighborhood = (coord) => {
+  for (let i = 0; i < neighborhoods.features.length; i++) {
+    if (
+      booleanPointInPolygon(
+        coord,
+        polygon(neighborhoods.features[i].geometry.coordinates[0])
+      )
+    ) {
+      return neighborhoods.features[i];
+    }
+  }
+  return null;
+};
 
 function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   return (
@@ -74,7 +88,14 @@ function DropDown({ timeRange, setTimeRange, toggleDD, setToggleDD }) {
   );
 }
 
-export default function DataView({ timeRange, setTimeRange, neighborhood, setNeighborhood, coordDict, neighborhoodDict }) {
+export default function DataView({
+  timeRange,
+  setTimeRange,
+  neighborhood,
+  setNeighborhood,
+  coordDict,
+  neighborhoodDict,
+}) {
   const [toggleDD, setToggleDD] = useState(false);
   const [geocodingRes, setGeocodingRes] = useState([]);
   const [locationSearch, setLocationSearch] = useState(null);
@@ -85,20 +106,15 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
     forwardGeocoding(locationSearch);
   }, [locationSearch]);
 
-
   // TODO: get stats
   useEffect(() => {
-
-
     let serviceStats = {};
     let total = 0;
-
 
     if (neighborhood) {
       let subset = neighborhoodDict[neighborhood.properties.listname];
       // TODO: handle citywide case
       if (subset) {
-        console.log("trigger recalculation of stats")
         for (const coord of subset) {
           total += 1;
           const info = coordDict[coord];
@@ -110,18 +126,20 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
             serviceStats[key].Total += 1;
             serviceStats[key][info.properties.status] += 1;
           } else {
-            serviceStats[key] = { Total : 1, Open: 0, Closed: 0};
+            serviceStats[key] = { Total: 1, Open: 0, Closed: 0 };
           }
         }
 
-        setStats(stats => {return {...stats, "serviceStats":serviceStats, "total": total}})
+        setStats((stats) => {
+          return { ...stats, serviceStats: serviceStats, total: total };
+        });
       }
     }
-  }, [neighborhoodDict])
+  }, [neighborhoodDict, neighborhood]);
 
   const forwardGeocoding = () => {
-    // const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=false&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=place,address,district,postcode,neighborhood,locality`;
-    const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=neighborhood`;
+    const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=place,address,district,postcode,neighborhood,locality`;
+    // const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=neighborhood`;
 
     axios
       .get(endpoint, {
@@ -130,7 +148,12 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
         },
       })
       .then((res) => {
-        setGeocodingRes(res.data.features);
+        let results = [];
+        for (const r of res.data.features) {
+          let n = pointInNeighborhood(r.geometry.coordinates);
+          if (n) results.push([r.place_name, n]);
+        }
+        setGeocodingRes(results);
       })
       .catch((err) => {
         console.log(err);
@@ -142,7 +165,7 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
       <div className="data-container">
         <div className="data-section">
           <p className="nor-name">
-            {neighborhood ? (neighborhood?.properties?.listname) : "Philadelphia"}
+            {neighborhood ? neighborhood?.properties?.listname : "Philadelphia"}
           </p>
         </div>
         <div className="data-section">
@@ -159,14 +182,17 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
             <div style={{ position: "relative" }}>
               <input
                 type="search"
-                value={neighborhood?.properties?.listname || neighborhood?.place_name.split(',')[0] || locationSearch}
+                value={
+                  neighborhood?.properties?.listname ||
+                  neighborhood?.place_name.split(",")[0] ||
+                  locationSearch
+                }
                 id="dataView-searchBar"
                 placeholder={"Search Neighborhood"}
                 onChange={(e) => {
                   setNeighborhood(null);
                   setLocationSearch(e.target.value);
-                }
-              }
+                }}
                 onFocus={(e) => setInputFocus(true)}
               ></input>
               {geocodingRes.length > 0 && inputFocus && (
@@ -175,21 +201,14 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
                     return (
                       <>
                         {index > 0 && <hr key={`${res}-hr`}></hr>}
-                        <div className="dd-item"
-                          // TODO: figure out setNeighborhood logic
-                          onClick={()=>{
-                            const coord = res.center;
-                            for (let i = 0; i < neighborhoods.features.length; i++) {
-                              if (booleanPointInPolygon(coord, neighborhoods.features[i])) {
-                                setNeighborhood(neighborhoods.features[i])
-                                setInputFocus(false);
-                                break
-                              }
-                            }
+                        <div
+                          className="dd-item"
+                          onClick={() => {
+                            setNeighborhood(res[1]);
                             setInputFocus(false);
                           }}
                         >
-                          {res.place_name.split(",")[0]}
+                          {res[0]}
                         </div>
                       </>
                     );
@@ -234,7 +253,10 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
             {CATEGORY_OPTIONS.map((category) => {
               let perc_resolved;
               if (stats?.serviceStats[category]) {
-                perc_resolved = (100* stats.serviceStats[category].Closed / stats.serviceStats[category].Total).toFixed(2);
+                perc_resolved = (
+                  (100 * stats.serviceStats[category].Closed) /
+                  stats.serviceStats[category].Total
+                ).toFixed(2);
               } else {
                 perc_resolved = -1;
               }
@@ -242,10 +264,25 @@ export default function DataView({ timeRange, setTimeRange, neighborhood, setNei
                 <div className="flexCol-sm" key={category}>
                   <div className="flexRow">
                     <p className="font-16">{category}</p>
-                    <p className="font-16">{perc_resolved>-1?`${perc_resolved}%`: 'NA'}</p>
+                    <p className="font-16">
+                      {perc_resolved > -1 ? `${perc_resolved}%` : "NA"}
+                    </p>
                   </div>
-                  <div className={`progress-bar-container ${perc_resolved>-1?'active':'inactive'}`}>
-                    <div className="progress-bar" style={{width:`${perc_resolved>-1?`${Math.round(perc_resolved)}%`:0}`}}></div>
+                  <div
+                    className={`progress-bar-container ${
+                      perc_resolved > -1 ? "active" : "inactive"
+                    }`}
+                  >
+                    <div
+                      className="progress-bar"
+                      style={{
+                        width: `${
+                          perc_resolved > -1
+                            ? `${Math.round(perc_resolved)}%`
+                            : 0
+                        }`,
+                      }}
+                    ></div>
                   </div>
                   <p className="nor-sub"> Average Closed Time: 21 Days</p>
                   <p className="nor-sub">

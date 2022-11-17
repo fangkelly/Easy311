@@ -22,7 +22,8 @@
     "react-bootstrap":"2.6.0",
     "react-vertical-timeline-component":"3.5.2",
     "@turf/turf": "^6.5.0",
-    "@turf/boolean-point-in-polygon":"6.5.0"
+    "@turf/boolean-point-in-polygon":"6.5.0",
+    "@turf/center": "6.5.0"
   },
   "scripts": {
     "start": "react-scripts start",

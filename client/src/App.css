@@ -187,6 +187,8 @@ body {
   display: flex;
   flex-direction: column;
   row-gap: 0.5rem;
+  overflow: scroll;
+  max-height: 30vh;
 }
 
 .dd-item {
@@ -216,6 +218,7 @@ body {
   border-radius: 100px;
   left: 0;
   height: 8px;
+  transition: width 0.5s;
 }
 
 .progress-bar-container.active {

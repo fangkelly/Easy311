@@ -131,7 +131,8 @@ function App() {
     fetch(`/analysis_data?time=${timeRange}`)
       .then((res) => res.json())
       .then((data) => setAnalysisData(data));
-  }, [timeRange, neighborhood]);
+  }, [timeRange]);
+
 
   useEffect(() => {
     if (analysisData) {
@@ -186,6 +187,7 @@ function App() {
           data={data}
           setDataView={setDataView}
           setPointData={setPointData}
+          neighborhood={neighborhood}
           setNeighborhood={setNeighborhood}
         />
         {dataView && (
