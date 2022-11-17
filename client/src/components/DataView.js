@@ -12,6 +12,8 @@ import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { point, polygon } from "@turf/helpers";
 import neighborhoods from "../data/neighborhoods.json";
 
+import DonutChart from "./DonutChart";
+
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
 const PHL_BBOX = "-75.353877, 39.859018, -74.92068962905012, 40.14958609050669";
@@ -102,6 +104,8 @@ export default function DataView({
   const [inputFocus, setInputFocus] = useState(false);
   const [stats, setStats] = useState(null);
 
+
+ 
   useEffect(() => {
     forwardGeocoding(locationSearch);
   }, [locationSearch]);
@@ -134,6 +138,30 @@ export default function DataView({
           return { ...stats, serviceStats: serviceStats, total: total };
         });
       }
+    } else {
+      // when no neighborhood is chosen, calculate citywide stats
+      console.log("triggered recalculation of citywide stats");
+
+      for (const [k, v] of Object.entries(neighborhoodDict)) {
+        for (const coord of v) {
+          total += 1;
+          const info = coordDict[coord];
+          let key = info.properties.service_name;
+          if (!CATEGORY_MINUS_OTHER.includes(key)) {
+            key = "Other";
+          }
+          if (serviceStats[key]) {
+            serviceStats[key].Total += 1;
+            serviceStats[key][info.properties.status] += 1;
+          } else {
+            serviceStats[key] = { Total: 1, Open: 0, Closed: 0 };
+          }
+        }
+      }
+
+      setStats((stats) => {
+        return { ...stats, serviceStats: serviceStats, total: total };
+      });
     }
   }, [neighborhoodDict, neighborhood]);
 
@@ -162,7 +190,7 @@ export default function DataView({
 
   return (
     <div className="card card-style">
-      <div className="data-container">
+      <div id="data-container">
         <div className="data-section">
           <p className="nor-name">
             {neighborhood ? neighborhood?.properties?.listname : "Philadelphia"}
@@ -171,7 +199,9 @@ export default function DataView({
         <div className="data-section">
           <p className="data-title">Number of Requests</p>
           <div className="nor-stat">
-            <p className="nor-count">132,234</p>
+            <p className="nor-count">
+              {stats?.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+            </p>
             <div className={"negative-trend trend"}>
               <FontAwesomeIcon icon={faCaretUp} size={"2xl"} />
               <p className="nor-trend">12%</p>
@@ -224,7 +254,11 @@ export default function DataView({
               setToggleDD={setToggleDD}
             />
           </div>
-          <div style={{ height: "30vh" }}></div>
+          <div style={{padding:"1rem"}}>
+            {stats &&  <DonutChart
+              data={Object.entries(stats?.serviceStats)}
+            />}
+          </div>
         </div>
         <div className="data-section">
           <p className="data-title">Requests Completed</p>
