@@ -19,8 +19,8 @@ const MAPBOX_ACCESS_TOKEN =
 const MAP_STYLE = "mapbox://styles/fangk/clajv6ki9001z14nyv0bhi16q";
 const NAV_CONTROL_STYLE = {
   position: "absolute",
-  bottom: 100,
-  right: 10,
+  bottom: "12vh",
+  right: "2vh",
 };
 
 export default function Map({

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import DropDown from "./DropDown";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -56,39 +57,7 @@ const pointInNeighborhood = (coord) => {
   return null;
 };
 
-function DropDown({ timeRange, setTimeRange }) {
-  const [toggleDD, setToggleDD] = useState(false)
-  return (
-    <div id="data-dd">
-      <div className="dd-toggle" onClick={(e) => {
-        setToggleDD(!toggleDD);
-      }}>
-        <p>{timeRange}</p>
-        <FontAwesomeIcon icon={faChevronDown} />
-        {toggleDD && (
-          <div className="dd-items">
-            {TIME_RANGE.map((item, index) => {
-              return (
-                <>
-                  {index > 0 && <hr key={`${item}-hr`}></hr>}
-                  <div
-                    key={`${item}-dd`}
-                    className={"dd-item"}
-                    onClick={() => {
-                      setTimeRange(item);
-                    }}
-                  >
-                    {item}
-                  </div>
-                </>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+
 
 function SearchBox ({neighborhood, setNeighborhood}) {
   const [inputFocus, setInputFocus] = useState(false);
@@ -190,7 +159,7 @@ export default function DataView({
 
   return (
     <div className="card card-style">
-      <div id="data-container">
+      <div className="card-container" id={"data-container"}>
         <div className="data-section">
           <p className="nor-name">
             {neighborhood ? neighborhood?.properties?.listname : "Philadelphia"}
@@ -212,8 +181,9 @@ export default function DataView({
             <SearchBox neighborhood={neighborhood} setNeighborhood={setNeighborhood} />
 
             <DropDown
-              timeRange={timeRange}
-              setTimeRange={setTimeRange}
+              val={timeRange}
+              setVal={setTimeRange}
+              items={TIME_RANGE}
             />
           </div>
           <div style={{ padding: "1rem" }}>

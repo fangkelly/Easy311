@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import SubmissionForm from "./components/SubmissionForm";
 import axios from "axios";
 import logo from "./icons/logo.svg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -8,6 +9,7 @@ import {
   faEllipsis,
   faChevronDown,
   faLayerGroup,
+  faPlus
 } from "@fortawesome/free-solid-svg-icons";
 import "./App.css";
 import Map from "./components/Map.js";
@@ -112,6 +114,7 @@ function App() {
   const [timeRange, setTimeRange] = useState("This week");
   const [neighborhood, setNeighborhood] = useState(null);
   const [stats, setStats] = useState(null);
+  const [toggleForm, setToggleForm] = useState(false);
 
   let emptySet = new Set();
 
@@ -384,6 +387,13 @@ function App() {
             <FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon>
           </button>
         </div>
+
+        <button id="toggleForm-btn" onClick={(e)=>{
+          e.stopPropagation();
+          setToggleForm(true);
+        }}><FontAwesomeIcon icon={faPlus}></FontAwesomeIcon></button>
+
+        {toggleForm && <SubmissionForm setToggleForm={setToggleForm}/>}
 
         {toggleFilter && (
           <div className="filter-container card-style">
