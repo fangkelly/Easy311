@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import drawChart from "./drawChart";
 
-const DonutChart = ({ data }) => {
+const DonutChart = ({ data, total }) => {
   const ref = useRef(null);
+
 
   useEffect(() => {
     if (ref.current) {
-      drawChart(ref.current, data);
+      console.log("data ", data)
+      drawChart(ref.current, data, total);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref, data]);

@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 
-const drawChart = (element, data) => {
+const drawChart = (element, data, total) => {
   const colors = {
     "Illegal Dumping": "#6CC3C4",
     "Rubbish and Recycling": "#77B6EA",
@@ -13,6 +13,8 @@ const drawChart = (element, data) => {
     "Street Trees": "#C7D66D",
     Other: "#FFC78A",
   };
+
+
   const boxSize = 500;
 
   d3.select(element).select("svg").remove(); // Remove the old svg
@@ -41,8 +43,33 @@ const drawChart = (element, data) => {
 
   const arcs = svg.selectAll().data(pieGenerator(data)).enter();
 
+  let tt = document.getElementById("tooltip");
+  if (tt) tt.parentElement.removeChild(tt);
+
+  const tooltip = d3.select(element)
+          .append('div')
+        	.attr('id', 'tooltip')
+        	.style('display', 'none')
+        ;
+
+
+        
+  function mouseClick(event, d) {
+    console.log(d.data[1].Total);
+          tooltip
+            .text(`${d.data[0]}: ${d.data[1].Total} / ${total}`)
+            .style('display', 'inline-block')
+            .style('position', 'absolute')
+            .style('left', event.layerX + 0 + "px")
+            .style('top', event.layerY + 0 + "px")
+          ;
+        }
+        
+ 
+
   arcs
     .append("path")
+    .on("click", (event, d) => mouseClick(event, d))
     .attr("d", arcGenerator)
     .style("fill", (d, i) => colors[d.data[0]])
     .transition()
@@ -53,7 +80,10 @@ const drawChart = (element, data) => {
         d.endAngle = i(t);
         return arcGenerator(d);
       };
-    });
+    })
+    ;
+    
+    
 };
 
 export default drawChart;

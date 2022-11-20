@@ -174,8 +174,18 @@ export default function DataView({
   stats
 }) {
 
+  const handleScroll = () => (
+    document.getElementById("tooltip").style.display = "none"
+  )
 
 
+  useEffect(() => {
+    const dataContainer = document.getElementById("data-container");
+    dataContainer.addEventListener("scroll", ()=>{handleScroll()});
+    return () => {
+      dataContainer.removeEventListener("scroll", ()=> {handleScroll()});
+    };
+  }, []);
 
 
   return (
@@ -207,7 +217,7 @@ export default function DataView({
             />
           </div>
           <div style={{ padding: "1rem" }}>
-            {stats && <DonutChart data={Object.entries(stats?.serviceStats)} />}
+            {stats && <DonutChart total={stats?.total} data={Object.entries(stats?.serviceStats)} />}
           </div>
         </div>
         <div className="data-section">
