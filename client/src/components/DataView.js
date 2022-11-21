@@ -19,7 +19,7 @@ const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
 const PHL_BBOX = "-75.353877, 39.859018, -74.92068962905012, 40.14958609050669";
 
-const CATEGORY_OPTIONS = [
+let CATEGORY_OPTIONS = [
   "Illegal Dumping",
   "Rubbish and Recycling",
   "Abandoned Vehicle",
@@ -31,7 +31,6 @@ const CATEGORY_OPTIONS = [
   "Street Trees",
   "Other",
 ];
-
 
 const TIME_RANGE = [
   "All time",
@@ -57,9 +56,7 @@ const pointInNeighborhood = (coord) => {
   return null;
 };
 
-
-
-function SearchBox ({neighborhood, setNeighborhood}) {
+function SearchBox({ neighborhood, setNeighborhood }) {
   const [inputFocus, setInputFocus] = useState(false);
   const [geocodingRes, setGeocodingRes] = useState([]);
   const [locationSearch, setLocationSearch] = useState(null);
@@ -67,7 +64,6 @@ function SearchBox ({neighborhood, setNeighborhood}) {
   useEffect(() => {
     forwardGeocoding(locationSearch);
   }, [locationSearch]);
-
 
   const forwardGeocoding = () => {
     const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${locationSearch}.json?access_token=${MAPBOX_ACCESS_TOKEN}&autocomplete=true&limit=5&bbox=${PHL_BBOX}&proximity=ip&types=place,address,district,postcode,neighborhood,locality`;
@@ -94,43 +90,43 @@ function SearchBox ({neighborhood, setNeighborhood}) {
 
   return (
     <div style={{ position: "relative" }}>
-              <input
-                type="search"
-                value={
-                  neighborhood?.properties?.listname ||
-                  neighborhood?.place_name.split(",")[0] ||
-                  locationSearch
-                }
-                id="dataView-searchBar"
-                placeholder={"Search Neighborhood"}
-                onChange={(e) => {
-                  setNeighborhood(null);
-                  setLocationSearch(e.target.value);
-                }}
-                onFocus={(e) => setInputFocus(true)}
-              ></input>
-              {geocodingRes.length > 0 && inputFocus && (
-                <div className={"dd-items"}>
-                  {geocodingRes.map((res, index) => {
-                    return (
-                      <>
-                        {index > 0 && <hr key={`${res}-hr`}></hr>}
-                        <div
-                          className="dd-item"
-                          onClick={() => {
-                            setNeighborhood(res[1]);
-                            setInputFocus(false);
-                          }}
-                        >
-                          {res[0]}
-                        </div>
-                      </>
-                    );
-                  })}
+      <input
+        type="search"
+        value={
+          neighborhood?.properties?.listname ||
+          neighborhood?.place_name.split(",")[0] ||
+          locationSearch
+        }
+        id="dataView-searchBar"
+        placeholder={"Search Neighborhood"}
+        onChange={(e) => {
+          setNeighborhood(null);
+          setLocationSearch(e.target.value);
+        }}
+        onFocus={(e) => setInputFocus(true)}
+      ></input>
+      {geocodingRes.length > 0 && inputFocus && (
+        <div className={"dd-items"}>
+          {geocodingRes.map((res, index) => {
+            return (
+              <>
+                {index > 0 && <hr key={`${res}-hr`}></hr>}
+                <div
+                  className="dd-item"
+                  onClick={() => {
+                    setNeighborhood(res[1]);
+                    setInputFocus(false);
+                  }}
+                >
+                  {res[0]}
                 </div>
-              )}
-            </div>
-  )
+              </>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function DataView({
@@ -140,22 +136,82 @@ export default function DataView({
   setNeighborhood,
   coordDict,
   neighborhoodDict,
-  stats
+  stats,
 }) {
 
-  const handleScroll = () => (
-    document.getElementById("tooltip").style.display = "none"
-  )
+  
+  function sortCategory(array) {
+    const nans = array.filter(a => !Object.keys(stats.serviceStats).includes(a));
+    const not_nan = array.filter(a=>Object.keys(stats.serviceStats).includes(a));
+    not_nan.sort(function (a, b) {
+      var x = stats?.serviceStats[a]?.Closed / stats?.serviceStats[a]?.Total;
+      var y = stats?.serviceStats[b]?.Closed / stats?.serviceStats[b]?.Total;
+      console.log(x, y);
+      return y-x;
+    });
 
+    console.log("SORT ", not_nan);
+    console.log("STATS ",stats.serviceStats);
+
+    return not_nan
+  }
+
+  const handleScroll = () =>
+    (document.getElementById("tooltip").style.display = "none");
+
+  const getProgressBars = () => {
+    let sortedCategories = sortCategory(CATEGORY_OPTIONS);
+    let pb = sortedCategories.map((category) => {
+      let perc_resolved;
+      if (stats?.serviceStats[category]) {
+        perc_resolved = (
+          (100 * stats.serviceStats[category].Closed) /
+          stats.serviceStats[category].Total
+        ).toFixed(2);
+      } else {
+        perc_resolved = -1;
+      }
+      return (
+        <div className="flexCol-sm" key={category}>
+          <div className="flexRow">
+            <p className="font-16">{category}</p>
+            <p className="font-16">
+              {perc_resolved > -1 ? `${perc_resolved}%` : "NA"}
+            </p>
+          </div>
+          <div
+            className={`progress-bar-container ${
+              perc_resolved > -1 ? "active" : "inactive"
+            }`}
+          >
+            <div
+              className="progress-bar"
+              style={{
+                width: `${
+                  perc_resolved > -1 ? `${Math.round(perc_resolved)}%` : 0
+                }`,
+              }}
+            ></div>
+          </div>
+          <p className="nor-sub"> Average Closed Time: 21 Days</p>
+          <p className="nor-sub"> Agency Responsible: Streets Department</p>
+        </div>
+      );
+    });
+    return pb;
+  };
 
   useEffect(() => {
     const dataContainer = document.getElementById("data-container");
-    dataContainer.addEventListener("scroll", ()=>{handleScroll()});
+    dataContainer.addEventListener("scroll", () => {
+      handleScroll();
+    });
     return () => {
-      dataContainer.removeEventListener("scroll", ()=> {handleScroll()});
+      dataContainer.removeEventListener("scroll", () => {
+        handleScroll();
+      });
     };
   }, []);
-
 
   return (
     <div className="card card-style">
@@ -178,7 +234,10 @@ export default function DataView({
           </div>
           <p className="nor-sub">compared to last year</p>
           <div className="dataView-filter">
-            <SearchBox neighborhood={neighborhood} setNeighborhood={setNeighborhood} />
+            <SearchBox
+              neighborhood={neighborhood}
+              setNeighborhood={setNeighborhood}
+            />
 
             <DropDown
               val={timeRange}
@@ -187,7 +246,12 @@ export default function DataView({
             />
           </div>
           <div style={{ padding: "1rem" }}>
-            {stats && <DonutChart total={stats?.total} data={Object.entries(stats?.serviceStats)} />}
+            {stats && (
+              <DonutChart
+                total={stats?.total}
+                data={Object.entries(stats?.serviceStats)}
+              />
+            )}
           </div>
         </div>
         <div className="data-section">
@@ -213,50 +277,7 @@ export default function DataView({
               </div>
             </div>
           </div>
-          <div className="flexCol">
-            {CATEGORY_OPTIONS.map((category) => {
-              let perc_resolved;
-              if (stats?.serviceStats[category]) {
-                perc_resolved = (
-                  (100 * stats.serviceStats[category].Closed) /
-                  stats.serviceStats[category].Total
-                ).toFixed(2);
-              } else {
-                perc_resolved = -1;
-              }
-              return (
-                <div className="flexCol-sm" key={category}>
-                  <div className="flexRow">
-                    <p className="font-16">{category}</p>
-                    <p className="font-16">
-                      {perc_resolved > -1 ? `${perc_resolved}%` : "NA"}
-                    </p>
-                  </div>
-                  <div
-                    className={`progress-bar-container ${
-                      perc_resolved > -1 ? "active" : "inactive"
-                    }`}
-                  >
-                    <div
-                      className="progress-bar"
-                      style={{
-                        width: `${
-                          perc_resolved > -1
-                            ? `${Math.round(perc_resolved)}%`
-                            : 0
-                        }`,
-                      }}
-                    ></div>
-                  </div>
-                  <p className="nor-sub"> Average Closed Time: 21 Days</p>
-                  <p className="nor-sub">
-                    {" "}
-                    Agency Responsible: Streets Department
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          <div className="flexCol">{getProgressBars()}</div>
         </div>
       </div>
     </div>
