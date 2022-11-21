@@ -317,7 +317,7 @@ function App() {
                               left: "11px",
                             }}
                           >
-                            <h4 className="vertical-timeline-element-subtitle">
+                            <p className="vertical-timeline-element-subtitle">
                               {time == "requested_datetime"
                                 ? "Service request opened"
                                 : time == "updated_datetime"
@@ -325,7 +325,7 @@ function App() {
                                   ? pointData.properties.status_notes
                                   : "Service request updated"
                                 : "Service request closed"}
-                            </h4>
+                            </p>
                           </VerticalTimelineElement>
                         );
                       }
@@ -341,7 +341,7 @@ function App() {
               style={{
                 padding: "1rem 1rem",
                 height: "calc(100vh - 2rem)",
-                width: "calc(100vw - 2rem)",
+                width: "calc(100vw)",
                 backgroundSize: "cover",
                 backgroundImage: `url(${
                   pointData?.properties?.media_url ||
