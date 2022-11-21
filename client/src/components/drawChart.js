@@ -23,18 +23,18 @@ const drawChart = (element, data, total) => {
     .select(element)
     .append("svg")
     .attr("preserveAspectRatio", "xMidYMid meet")
-    .attr("height", "100%")
+    .attr("height", "400px")
     .attr("width", "100%")
     .attr("viewBox", `0 0 ${boxSize} ${boxSize}`)
     .append("g")
-    .attr("transform", `translate(${boxSize / 2}, ${boxSize / 2})`);
+    .attr("transform", `translate(${boxSize / 2}, ${boxSize / 6})`);
 
   const maxValue = data.reduce((cur, val) => Math.max(cur, val[1].Total), 0);
   const arcGenerator = d3
     .arc()
     .padAngle(0.02)
     .innerRadius(150)
-    .outerRadius(250)
+    .outerRadius(200)
     // .outerRadius((d) => {
     //   return 250 - (maxValue - d.data[1].Total);
     // });
@@ -82,6 +82,34 @@ const drawChart = (element, data, total) => {
       };
     })
     ;
+
+    var legendG = svg.selectAll(".legend")
+    .data(data)
+    .enter().append("g")
+    .attr("transform", function(d,i){
+      if (i<=4) {
+        return "translate(" + (-250) + "," + (i * 50 + 270)+ ")";
+      } else {
+        return "translate(" + (50) + "," + ((i-4) * 50 + 270)+ ")";
+      }
+    })
+    .attr("class", "legend");   
+  
+  legendG.append("rect")
+    .attr("width", 40)
+    .attr("height", 40)
+    .attr("fill", function(d, i) {
+      return colors[d[0]];
+    });
+  
+  legendG.append("text")
+    .text(function(d){
+      return d[0];
+    })
+    .style("font-size", 25)
+    .attr("y", 25)
+    .attr("x", 55)
+    .attr("fill", '#FFFFFF');
     
     
 };
