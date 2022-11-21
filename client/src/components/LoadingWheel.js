@@ -2,13 +2,14 @@ import React, {useEffect, useState} from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
-export default function LoadingWheel({heading, loader, text}) {
+export default function LoadingWheel({heading, loader, text, closeFunction}) {
     return (
         <div className="loadingWheel-container">
             {!loader &&  <button id="closeLoader-btn"
-            // onClick={() => {
-            //   setToggleForm(false);
-            // }}
+            onClick={(e) => {
+                e.stopPropagation(e);
+              closeFunction(false);
+            }}
           >
             <FontAwesomeIcon icon={faXmark} size={"2x"}></FontAwesomeIcon>
           </button>}

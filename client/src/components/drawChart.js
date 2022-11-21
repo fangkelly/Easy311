@@ -27,7 +27,7 @@ const drawChart = (element, data, total) => {
     .attr("width", "100%")
     .attr("viewBox", `0 0 ${boxSize} ${boxSize}`)
     .append("g")
-    .attr("transform", `translate(${boxSize / 2}, ${boxSize / 4})`);
+    .attr("transform", `translate(${boxSize / 2}, ${boxSize / 5})`);
 
   const maxValue = data.reduce((cur, val) => Math.max(cur, val[1].Total), 0);
   const arcGenerator = d3
