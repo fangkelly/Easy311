@@ -228,7 +228,7 @@ export default function SubmissionForm({ setToggleForm }) {
               setToggleForm(false);
             }}
           >
-            <FontAwesomeIcon icon={faXmark}></FontAwesomeIcon>
+            <FontAwesomeIcon icon={faXmark} color={"black"}></FontAwesomeIcon>
           </button>
         </div>
 
