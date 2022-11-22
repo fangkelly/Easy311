@@ -149,7 +149,7 @@ export default function DataView({
       console.log(x, y);
       return y-x;
     });
-
+//
     console.log("SORT ", not_nan);
     console.log("STATS ",stats.serviceStats);
 
