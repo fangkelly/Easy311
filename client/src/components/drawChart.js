@@ -3,15 +3,15 @@ import * as d3 from "d3";
 const drawChart = (element, data, total) => {
   const colors = {
     "Illegal Dumping": "#6CC3C4",
-    "Rubbish and Recycling": "#77B6EA",
-    "Abandoned Vehicle": "#D59DFF",
-    "Pothole Repair": "#FFBCB5",
-    "Graffiti Removal": "#8A89C0",
-    "Vacant Lots": "#EE7674",
-    "Street Light Outage": "#D9594C",
-    "Property Maintenance": "#80CFA9",
-    "Street Trees": "#C7D66D",
-    Other: "#FFC78A",
+    "Rubbish and Recycling": "#D59EFF",
+    "Abandoned Vehicle": "#FFC68A",
+    "Pothole Repair": "#FF7E87",
+    "Graffiti Removal": "#8BBFA2",
+    "Vacant Lots": "#9BDBE8",
+    "Street Light Outage": "#EDEAE4",
+    "Property Maintenance": "#FFD9E3",
+    "Street Trees": "#32CACE",
+    Other: "#7F4C70",
   };
 
 
