@@ -1,6 +1,8 @@
 import * as d3 from "d3";
 
 const drawChart = (element, data, total) => {
+
+
   const colors = {
     "Illegal Dumping": "#6CC3C4",
     "Rubbish and Recycling": "#D59EFF",

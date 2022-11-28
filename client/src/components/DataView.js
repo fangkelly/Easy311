@@ -3,6 +3,7 @@ import DropDown from "./DropDown";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faMinus,
   faCaretDown,
   faCaretUp,
   faChevronDown,
@@ -14,6 +15,7 @@ import { point, polygon } from "@turf/helpers";
 import neighborhoods from "../data/neighborhoods.json";
 
 import DonutChart from "./DonutChart";
+import { timer } from "d3-timer";
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
@@ -32,11 +34,24 @@ let CATEGORY_OPTIONS = [
   "Other",
 ];
 
+let DEPARTMENTS = {
+  "Illegal Dumping": "Streets Department",
+  "Rubbish and Recycling" : "Streets Department",
+  "Abandoned Vehicle" : "Police Department",
+  "Pothole Repair" : "Streets Department",
+  "Graffiti Removal" : "Community Life Improvement Program",
+  "Vacant Lots" : "License & Inspections",
+  "Street Light Outage" : "Streets Department",
+  "Property Maintenance" : "License & Inspections",
+  "Street Trees": "Streets Department",
+  "Other": "Various",
+}
+
 const TIME_RANGE = [
-  "All time",
-  "This year",
-  "This month",
-  "This week",
+  // "All time",
+  // "This year",
+  "Last 30 days",
+  "Last 7 days",
   "Today",
 ];
 
@@ -139,21 +154,41 @@ export default function DataView({
   stats,
 }) {
 
-  
+
+
   function sortCategory(array) {
-    const nans = array.filter(a => !Object.keys(stats.serviceStats).includes(a));
-    const not_nan = array.filter(a=>Object.keys(stats.serviceStats).includes(a));
+    const nans = array.filter(
+      (a) => !Object.keys(stats.serviceStats).includes(a)
+    );
+    const not_nan = array.filter((a) =>
+      Object.keys(stats.serviceStats).includes(a)
+    );
     not_nan.sort(function (a, b) {
       var x = stats?.serviceStats[a]?.Closed / stats?.serviceStats[a]?.Total;
       var y = stats?.serviceStats[b]?.Closed / stats?.serviceStats[b]?.Total;
-      console.log(x, y);
-      return y-x;
+      return y - x;
     });
-//
-    console.log("SORT ", not_nan);
-    console.log("STATS ",stats.serviceStats);
+    return not_nan;
+  }
 
-    return not_nan
+  const getAverageTime = (category) => {
+
+    if (stats.serviceStats[category].Closed < 1) {
+      return "NA";
+    } else {
+      let timeRes_sec = stats.serviceStats[category].running_time / (stats.serviceStats[category].Closed * 1000)
+      if (timeRes_sec > 604800) {
+        return `${(timeRes_sec / 604800).toFixed(2)} weeks`;
+      } else if (timeRes_sec > 86400) {
+        return `${(timeRes_sec / 86400).toFixed(2)} days`;
+      } else if (timeRes_sec > 3600) {
+        return `${(timeRes_sec / 3600).toFixed(2)} hours`;
+      } else {
+        return `${(timeRes_sec / 60).toFixed(2)} minutes`;
+      }
+    }
+
+
   }
 
   const handleScroll = () =>
@@ -193,13 +228,16 @@ export default function DataView({
               }}
             ></div>
           </div>
-          <p className="nor-sub"> Average Closed Time: 21 Days</p>
-          <p className="nor-sub"> Agency Responsible: Streets Department</p>
+          <p className="nor-sub"> Average Closed Time: {getAverageTime(category)}</p>
+          <p className="nor-sub"> Agency Responsible: {DEPARTMENTS[category]}</p>
         </div>
       );
     });
     return pb;
   };
+
+
+
 
   useEffect(() => {
     const dataContainer = document.getElementById("data-container");
@@ -212,6 +250,8 @@ export default function DataView({
       });
     };
   }, []);
+
+ 
 
   return (
     <div className="card card-style">
@@ -227,9 +267,11 @@ export default function DataView({
             <p className="nor-count">
               {stats?.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
             </p>
-            <div className={"negative-trend trend"}>
-              <FontAwesomeIcon icon={faCaretUp} size={"2xl"} />
-              <p className="nor-trend">12%</p>
+
+
+            <div className={`${stats.trend<0?"negative-trend":stats.trend>0?"positive-trend":"neutral-trend"} trend`}>
+              <FontAwesomeIcon icon={stats.trend>0?faCaretUp:stats.trend<0?faCaretDown:faMinus} size={"2xl"} />
+              <p className="nor-trend">{stats.trend}%</p>
             </div>
           </div>
           <p className="nor-sub">compared to last year</p>
@@ -247,10 +289,7 @@ export default function DataView({
           </div>
           <div style={{ padding: "1rem" }}>
             {stats && (
-              <DonutChart
-                total={stats?.total}
-                data={Object.entries(stats?.serviceStats)}
-              />
+              <DonutChart total={stats?.total} data={stats?.serviceStats} />
             )}
           </div>
         </div>

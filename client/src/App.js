@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import SubmissionForm from "./components/SubmissionForm";
 import axios from "axios";
 import logo from "./icons/logo.svg";
@@ -9,7 +9,7 @@ import {
   faEllipsis,
   faChevronDown,
   faLayerGroup,
-  faPlus
+  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import "./App.css";
 import Map from "./components/Map.js";
@@ -23,9 +23,10 @@ import {
 import "react-vertical-timeline-component/style.min.css";
 
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
-import { point } from "@turf/helpers";
+import { point, polygon } from "@turf/helpers";
 
 import neighborhoods from "./data/neighborhoods.json";
+import { timer } from "d3-timer";
 
 const MONTHS = {
   "01": "January",
@@ -37,9 +38,9 @@ const MONTHS = {
   "07": "July",
   "08": "August",
   "09": "September",
-  "10": "October",
-  "11": "November",
-  "12": "December",
+  10: "October",
+  11: "November",
+  12: "December",
 };
 
 const STATUS_OPTIONS = ["Open", "Closed"];
@@ -56,11 +57,31 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
+const TIME_RANGE_DAYS = {
+  "All time": 36525,
+  "This year": 365,
+  "Last 30 days": 30,
+  "Last 7 days": 7,
+  "Today": 1,
+};
+
 const CATEGORY_MINUS_OTHER = CATEGORY_OPTIONS.filter(
   (category) => category != "Other"
 );
 
 const NEIGHBORHOODS = neighborhoods;
+
+const validateTime = (datetime, timeRange) => {
+  let date = new Date(datetime);
+  let currDate = new Date();
+
+  const diff = Date.parse(currDate) - Date.parse(date);
+  if (diff <= TIME_RANGE_DAYS[timeRange] * 86400 * 1000) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
 const convertDate = (datetime) => {
   if (datetime) {
@@ -103,7 +124,7 @@ const convertDate = (datetime) => {
  */
 
 function App() {
-  const [data, setData] = useState(null);
+  // const [data, setData] = useState(null);
   const [analysisData, setAnalysisData] = useState(null);
   const [dataView, setDataView] = useState(false);
   const [toggleFilter, setToggleFilter] = useState(false);
@@ -111,7 +132,7 @@ function App() {
   const [filterStatus, setFilterStatus] = useState(STATUS_OPTIONS);
   const [filterCategory, setFilterCategory] = useState(CATEGORY_OPTIONS);
   const [search, setSearch] = useState("");
-  const [timeRange, setTimeRange] = useState("This week");
+  const [timeRange, setTimeRange] = useState("Last 7 days");
   const [neighborhood, setNeighborhood] = useState(null);
   const [stats, setStats] = useState(null);
   const [toggleForm, setToggleForm] = useState(false);
@@ -120,6 +141,7 @@ function App() {
 
   // keeps track of all points we've seen and processed
   const [points, setPoints] = useState(emptySet);
+  const [trendData, setTrendData] = useState(null);
 
   // maps hashed coordinate string keys to point objects representing individual service request
   // maps neighborhoods to all points that within time frame inside the neighborhood
@@ -162,31 +184,48 @@ function App() {
     }
   };
 
- 
+  useEffect(() => {
+    
+    fetch(`/analysis_data?time=${timeRange}&trend=true`)
+    .then((res) => res.json())
+    .then((data) => setTrendData(data))
+  },[timeRange])
 
   useEffect(() => {
-    fetch(
-      `/data?status=${filterStatus}&category=${filterCategory}&search=${search}&time=${timeRange}`
-    )
+    fetch(`/analysis_data?time=${timeRange}&trend=${false}`)
       .then((res) => res.json())
-      .then((data) => setData(data));
-  }, [filterStatus, filterCategory, search, timeRange]);
-
-  useEffect(() => {
-    fetch(`/analysis_data?time=${timeRange}`)
-      .then((res) => res.json())
-      .then((data) => createDicts(data))
-      .then((d)=> console.log("finished 1"))
+      .then((data) => setAnalysisData(data));
   }, [timeRange]);
 
-  // TODO: get stats
+  useEffect(() => {
+    createDicts(analysisData);
+  }, [analysisData]);
+
+  const data = useMemo(() => {
+    console.log("ANALYSIS DATA ", analysisData);
+    if (analysisData) {
+      return analysisData.filter(
+        (d) =>
+          filterStatus.includes(d.properties.status) &&
+          (filterCategory.includes(d.properties.service_name) ||
+            (filterCategory.includes("Other") &&
+              !filterCategory.includes(d.properties.service_name))) &&
+          validateTime(d.properties.requested_datetime, timeRange)
+      );
+    }
+  }, [filterStatus, filterCategory, search, analysisData]);
+
+  // TODO: CALC: avg time dur stats and perc change since last time range stats
   useEffect(() => {
     let serviceStats = {};
     let total = 0;
 
     if (neighborhood) {
       let subset = dataDict.neighborhoodDict[neighborhood.properties.listname];
+
       if (subset) {
+        let running_time = 0;
+        let num_closed = 0;
         for (const coord of subset) {
           total += 1;
           const info = dataDict.coordDict[coord];
@@ -194,19 +233,45 @@ function App() {
           if (!CATEGORY_MINUS_OTHER.includes(key)) {
             key = "Other";
           }
-          if (serviceStats[key]) {
-            serviceStats[key].Total += 1;
-            serviceStats[key][info.properties.status] += 1;
-          } else {
-            serviceStats[key] = { Total: 1, Open: 0, Closed: 0 };
+          if (!serviceStats[key]) {
+            serviceStats[key] = {
+              Total: 0,
+              Open: 0,
+              Closed: 0,
+              running_time: 0,
+            };
+          }
+
+          serviceStats[key].Total += 1;
+          serviceStats[key][info.properties.status] += 1;
+          if (info.properties.status === "Closed") {
+            num_closed += 1;
+            const diff =
+              Date.parse(info.properties.updated_datetime) -
+              Date.parse(info.properties.requested_datetime);
+            running_time += diff;
+            serviceStats[key].running_time += diff;
           }
         }
 
+       
+        const poly = polygon(neighborhood.geometry.coordinates[0]);
+        const neighborhood_trend =  trendData.filter(d => booleanPointInPolygon(point(d.geometry.coordinates), poly));
+        console.log("TREND ", ((total - neighborhood_trend.length)*100/neighborhood_trend.length).toFixed(2));
+
         setStats((stats) => {
-          return { ...stats, serviceStats: serviceStats, total: total };
+          return {
+            ...stats,
+            serviceStats: serviceStats,
+            total: total,
+            avg_resolution: (running_time / 1000) / num_closed,
+            trend: (((total - neighborhood_trend.length)*100)/neighborhood_trend.length).toFixed(2)
+          };
         });
       }
     } else {
+      let running_time = 0;
+      let num_closed = 0;
       // when no neighborhood is chosen, calculate citywide stats
       for (const [k, v] of Object.entries(dataDict.neighborhoodDict)) {
         for (const coord of v) {
@@ -216,20 +281,43 @@ function App() {
           if (!CATEGORY_MINUS_OTHER.includes(key)) {
             key = "Other";
           }
-          if (serviceStats[key]) {
-            serviceStats[key].Total += 1;
-            serviceStats[key][info.properties.status] += 1;
-          } else {
-            serviceStats[key] = { Total: 1, Open: 0, Closed: 0 };
+
+          if (!serviceStats[key]) {
+            serviceStats[key] = {
+              Total: 0,
+              Open: 0,
+              Closed: 0,
+              running_time: 0,
+            };
           }
+
+          serviceStats[key].Total += 1;
+          serviceStats[key][info.properties.status] += 1;
+          if (info.properties.status === "Closed") {
+            num_closed += 1;
+            const diff =
+              Date.parse(info.properties.updated_datetime) -
+              Date.parse(info.properties.requested_datetime);
+            running_time += diff;
+            serviceStats[key].running_time += diff;
+          }
+
         }
       }
 
+    
+
+
       setStats((stats) => {
-        return { ...stats, serviceStats: serviceStats, total: total };
+        return {
+          ...stats,
+          serviceStats: serviceStats,
+          total: total,
+          avg_resolution: running_time / 1000 / num_closed,
+          trend: ((total - trendData.length)*100/trendData.length).toFixed(2)
+        };
       });
     }
-    console.log("finished 2");
   }, [dataDict.neighborhoodDict, neighborhood]);
 
   return (
@@ -390,12 +478,17 @@ function App() {
           </button>
         </div>
 
-        <button id="toggleForm-btn" onClick={(e)=>{
-          e.stopPropagation();
-          setToggleForm(true);
-        }}><FontAwesomeIcon icon={faPlus}></FontAwesomeIcon></button>
+        <button
+          id="toggleForm-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setToggleForm(true);
+          }}
+        >
+          <FontAwesomeIcon icon={faPlus}></FontAwesomeIcon>
+        </button>
 
-        {toggleForm && <SubmissionForm setToggleForm={setToggleForm}/>}
+        {toggleForm && <SubmissionForm setToggleForm={setToggleForm} />}
 
         {toggleFilter && (
           <div className="filter-container card-style">

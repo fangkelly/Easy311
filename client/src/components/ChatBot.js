@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
 import DropDown from "./DropDown";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import Form from "react-bootstrap/Form";
 import imageCompression from "browser-image-compression";
 import SlideShow from "./SlideShow";
 import LoadingWheel from "./LoadingWheel";
-import ChatBot from "./ChatBot";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
-const MAP_STYLE = "mapbox://styles/fangk/clajv6ki9001z14nyv0bhi16q";
 
 const CATEGORY_OPTIONS = [
   "Illegal Dumping",
@@ -25,7 +23,7 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
-export default function SubmissionForm({ setToggleForm }) {
+export default function ChatBot({ setToggleForm }) {
   const [response, setResponse] = useState({
     category: null,
     description: null,
@@ -33,7 +31,7 @@ export default function SubmissionForm({ setToggleForm }) {
     subscribe: false,
     email: null,
     address: null,
-    name: null
+    name: null,
   });
 
   const [geo, setGeo] = useState({});
@@ -149,7 +147,6 @@ export default function SubmissionForm({ setToggleForm }) {
 
   const geolocate = () => {
     const success = (position) => {
-
       fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${position.coords.longitude},${position.coords.latitude}.json?access_token=${MAPBOX_ACCESS_TOKEN}`
       )
@@ -161,11 +158,8 @@ export default function SubmissionForm({ setToggleForm }) {
             .join(",");
           setAddress(location);
           document.getElementById("address").value = location;
-        })
-      
-      
-      
-  
+        });
+
       setGeo({
         geoLocateDialog: null,
         geoLocateTitle: null,
@@ -211,33 +205,151 @@ export default function SubmissionForm({ setToggleForm }) {
     }
   };
 
-  return (
-    <div className="card card-style">
-      <div className="card-container form-container">
-        {geo.geoLocateTitle && <LoadingWheel heading={geo.geoLocateTitle} loader={geo.geoLocateLoader} text={geo.geoLocateDialog} closeFunction={setToggleForm}/>}
+  const steps = {
+    1: {
+      message: "Welcome to EASY 311! What is your name?",
+      trigger: 2,
+    },
+    2: {
+      user: true,
+      trigger: 3,
+    },
+    3: {
+      message: "Nice to meet you ",
+    },
+  };
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
-        >
-          <h1 style={{color:"white"}}>EASY 311</h1>
-          <button
-            id="closeForm-btn"
-            onClick={() => {
-              setToggleForm(false);
-            }}
-          >
-            <FontAwesomeIcon icon={faXmark} color={"black"}></FontAwesomeIcon>
-          </button>
+  return (
+    <div className="chatbot-container">
+      <div className="messages">
+        <div className="message-row bot">
+          <div className="message-container bot">
+            <p>vfsdkbnjkdbnigfsklbma;nvamvkasnfjkvbgkjfadbgkjfadngvfakdnvla</p>
+          </div>
         </div>
 
-        
-
-        <ChatBot/>
+        <div className="message-row user">
+          <div className="message-container user">
+            <p>vfsdkbnjkdbnigfsklbma;nvamvkasnfjkvbgkjfadbgkjfadngvfakdnvla</p>
+          </div>
+        </div>
       </div>
+
+      <div className="response">
+        <input placeholder="Type in your response" type="text" />
+        <button className="send-message">
+            <FontAwesomeIcon icon={faPaperPlane}/>
+        </button>
+      </div>
+
+      {/* <div className={"data-section"}>
+          <p className={"data-title"}>What is your name?</p>
+          <input
+              placeholder="Type in your name"
+              type="text"
+              id="name"
+              onChange={(e) => {
+                setName(e.target.value);
+              }}
+            />
+        </div>
+
+        <div className={"data-section"}>
+          <p className={"data-title"}>What would you like to report today?</p>
+          <DropDown
+            val={response.category}
+            setVal={setCategory}
+            items={CATEGORY_OPTIONS}
+            placeholder={"Select a category"}
+          />
+        </div>
+        <div className={"data-section"}>
+          <p className={"data-title"}>
+            Please upload one or more images of the issue.
+          </p>
+
+          <input
+            type="file"
+            id="files"
+            multiple
+            accept="image/*"
+            onChange={(e) => {
+              handleUploadImage(e);
+            }}
+          />
+
+          {response.media && response.media.length > 0 && (
+            <SlideShow items={response.media} />
+          )}
+        </div>
+        <div className={"data-section"}>
+          <p className={"data-title"}>Where is this issue located?</p>
+          <div>
+            <input
+              placeholder="Type in an address"
+              type="text"
+              id="address"
+              onChange={(e) => {
+                setAddress(e.target.value);
+              }}
+            />
+            <div
+              className={"d-flex flex-row"}
+              style={{ justifyContent: "flex-end" }}
+            >
+              <button id={"geolocate-btn"} onClick={geolocate}>
+                Use my location
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className={"data-section"}>
+          <p className={"data-title"}>Please describe the issue.</p>
+          <input
+            placeholder="Description of issue"
+            type="text"
+            onChange={(e) => {
+              setDescription(e.target.value);
+            }}
+          />
+        </div>
+        <div className={"data-section"}>
+          <p className={"data-title"}>
+            If you'd like to receive updates on your issue status, please reply
+            with your email.
+          </p>
+          <input
+            placeholder="Email address"
+            type="email"
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
+          />
+        </div>
+        <div className={"data-section"}>
+          <p className={"data-title"}>
+            We'd love to work with residents on bettering Philly. Would you like
+            to get connected with our partner non-profits?{" "}
+          </p>
+          <Form className="filter-items">
+            <Form.Check
+              onChange={(e) => {
+                setSubscribe(e.target.checked);
+              }}
+              key={"subscribe"}
+              label={"Yes, connect me with partner non-profits"}
+              name={"subscribe"}
+              type={"checkbox"}
+              id={`subscribe-checkbox`}
+              checked={response.subscribe}
+              className={response.subscribe ? "active-label" : "inactive-label"}
+            />
+          </Form>
+        </div>
+
+        <div className={"data-section"} style={{ alignItems: "center" }}>
+          <button id={"submitForm-btn"}>Submit</button>
+        </div>  */}
     </div>
   );
 }

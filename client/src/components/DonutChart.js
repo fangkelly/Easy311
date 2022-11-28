@@ -8,7 +8,7 @@ const DonutChart = ({ data, total }) => {
   useEffect(() => {
     if (ref.current) {
       console.log("data ", data)
-      drawChart(ref.current, data, total);
+      drawChart(ref.current, Object.entries(data), total);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref, data]);
