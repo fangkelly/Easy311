@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState } from "react";
 import DropDown from "./DropDown";
 import Form from "react-bootstrap/Form";
@@ -6,6 +8,14 @@ import SlideShow from "./SlideShow";
 import LoadingWheel from "./LoadingWheel";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+
+
+const SPREADSHEET_ID = '1BQB3HWjFXnxcbvG0uzv72dLMk3CkI7whFJoufnUa_Y0';
+const CLIENT_ID = '674249811099-cb72cfg2k8aklpbkths41mknhurmepv4.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyBFN1wVr58SqaQdz3Rx0me_BXZBb7mkg1w';
+const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
+
+
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
@@ -246,6 +256,19 @@ export default function ChatBot({ setToggleForm }) {
     setSendResponse(true);
   };
 
+  useEffect(()=>{
+    window.gapi.load('client:auth2', initClient)
+  }, [])
+
+  const initClient = () => {
+    window.gapi.client.init({
+      'apiKey': API_KEY,
+      'clientId':CLIENT_ID,
+      'scope': SCOPE,
+      'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4']
+    })
+  }
+
   useEffect(() => {
     if (sendResponse) {
       messageParser(message);
@@ -269,6 +292,27 @@ export default function ChatBot({ setToggleForm }) {
   const handleClick = (e) => {
     submitMessage();
   };
+
+  const handleSubmit = () => {
+    const params = {
+      spreadsheetId: SPREADSHEET_ID,
+      range:"Sheet1",
+      valueInputOption:"Raw",
+      insertDataOption:"INSERT_ROWS"
+    };
+
+    const valueRangeBody = {
+      'majorDimension':'ROWS',
+      'values': [response.name, response.category, response.media, response.location, response.description, response.email, response.number]
+    };
+
+    let request = window.gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
+    request.then(function(response) {
+      console.log(response.result);
+    }, function (reason) {
+      console.error('error: ' + reason.result.error.message)
+    })
+  }
 
   const getWidget = (widgetType) => {
     console.log(widgetType);
@@ -469,6 +513,7 @@ export default function ChatBot({ setToggleForm }) {
         ]);
         setCurrentStep(-1);
         setSendResponse(true);
+        handleSubmit();
       }
     } else if (currentStep === 7) {
       const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -493,6 +538,7 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
         setCurrentStep(-1);
+        handleSubmit();
       } else {
         setMessageHistory([
           ...messageHistory,
@@ -524,7 +570,7 @@ export default function ChatBot({ setToggleForm }) {
             `,
           },
         ]);
-        setCurrentStep(-1);
+        handleSubmit();
       } else {
         setMessageHistory([
           ...messageHistory,
