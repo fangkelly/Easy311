@@ -19,7 +19,9 @@ export default function SlideShow({ items }) {
           })}
         </Carousel>
       ) : (
-        <div>1</div>
+        <img className={"slider-img"}
+      src={`${items[0][0].toString('base64')}`}
+    />
       )}
     </div>)}</>
   );

@@ -533,13 +533,7 @@ input::file-selector-button,
   font-size: 12px;
 }
 
-#geolocate-btn {
-  color: var(--white);
-  background-color: transparent;
-  border: none;
-  font-size: 12px;
-  text-decoration: underline;
-}
+
 
 /* CAROUSEL */
 
@@ -593,8 +587,8 @@ input::file-selector-button,
 
 .slider-img {
   object-fit: cover;
-  width: calc(100vw - 16px - 4rem);
-  height: calc(100vw - 16px - 4rem);
+  width: 100%;
+  height: 100%;
 }
 
 /* LOADER */
@@ -675,7 +669,7 @@ input::file-selector-button,
 }
 
 .messages-container::-webkit-scrollbar {
-  display: none !important;
+  display: none;
 }
 
 .message-row {
@@ -698,6 +692,7 @@ input::file-selector-button,
   border-radius: 20px;
   width: fit-content;
   max-width: 80%;
+  overflow-x: hidden;
 }
 
 .message-container.bot {

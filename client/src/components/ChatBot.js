@@ -146,6 +146,7 @@ export default function ChatBot({ setToggleForm }) {
   /* GEOLOCATION */
 
   const geolocate = () => {
+    console.log("geolocate");
     const success = (position) => {
       fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${position.coords.longitude},${position.coords.latitude}.json?access_token=${MAPBOX_ACCESS_TOKEN}`
@@ -156,8 +157,7 @@ export default function ChatBot({ setToggleForm }) {
             .split(",")
             .slice(0, 2)
             .join(",");
-          setAddress(location);
-          document.getElementById("address").value = location;
+          setMessage(location);
         });
 
       setGeo({
@@ -205,9 +205,18 @@ export default function ChatBot({ setToggleForm }) {
     }
   };
 
-
-  const steps = ["name", "issue", "image", "location", "description", "contact", "update", "review", "submit"];
-
+  const steps = [
+    "name",
+    "issue",
+    "image1",
+    "image2",
+    "location",
+    "description",
+    "contact",
+    "update",
+    "review",
+    "submit",
+  ];
 
   // Store user's messages
   const [message, setMessage] = useState("");
@@ -221,21 +230,29 @@ export default function ChatBot({ setToggleForm }) {
 
   const [sendResponse, setSendResponse] = useState(false);
 
-
   const submitMessage = () => {
-    setMessageHistory([...messageHistory, {sender:"user", message:message}]);
+    setMessageHistory([
+      ...messageHistory,
+      { sender: "user", message: message },
+    ]);
     const msg = message;
     // messageParser(msg);
     setSendResponse(true);
-  }
+  };
+
+  useEffect(() => {
+    if (sendResponse) {
+      messageParser(message);
+      setSendResponse(false);
+      setMessage("");
+    }
+  }, [sendResponse]);
+
 
   useEffect(()=>{
-    if (sendResponse) {
-      messageParser(message)
-      setSendResponse(false);
-      setMessage(""); 
-    }
-  }, [sendResponse])
+    const chatbot = document.getElementsByClassName("messages")[0];
+    chatbot.scrollTop = chatbot.scrollHeight;
+  }, [messageHistory]);
 
   const handleKeyUp = async (e) => {
     const code = e.keyCode;
@@ -248,14 +265,130 @@ export default function ChatBot({ setToggleForm }) {
     submitMessage();
   };
 
-  const messageParser = (msg) => {
-    console.log("in parser")
-    if (currentStep === 0) {
-      setMessageHistory([...messageHistory, {sender:"bot", message:`Nice to meet you ${msg}!`}])
+  const getWidget = (widgetType) => {
+    console.log(widgetType);
+    if (widgetType === "media_upload") {
+      return (
+       <div>
+        <input
+            type="file"
+            id="files"
+            multiple
+            accept="image/*"
+            onChange={(e) => {
+              handleUploadImage(e);
+            }}
+          />
+          {response.media && response.media.length > 1 && (
+            <SlideShow items={response.media} />
+          )}
+          
+       </div>
+      )
+    } else if (widgetType === "geolocate") {
+      return (
+        <button id={"geolocate-btn"} onClick={geolocate}>
+                Use my location
+              </button>
+      )
     }
-
   }
 
+  const messageParser = (msg) => {
+    console.log("in parser");
+    if (currentStep === 0) {
+      setMessageHistory([
+        ...messageHistory,
+        { sender: "bot", message: `Nice to meet you ${msg}!` },
+        {
+          sender: "bot",
+          message: `What type of service request would you like to make? Please select a number from below: 
+          \n 1. Illegal Dumping \n 2. Rubbish and Recycling \n 3. Abandoned Vehicle \n 4. Pothole Repair \n 5. Graffiti Removal \n 6. Vacant Lots \n 7. Street Light Outage \n 8. Property Maintenance \n 9. Street Trees \n 10. Other`,
+        },
+      ]);
+      setCurrentStep(1);
+      setSendResponse(false);
+    }
+    else if (currentStep === 1) {
+      let option = parseInt(msg);
+      if (!option || option < 1 || option > 10) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message:
+              "Please select a valid number from below: \n 1. Illegal Dumping \n 2. Rubbish and Recycling \n 3. Abandoned Vehicle \n 4. Pothole Repair \n 5. Graffiti Removal \n 6. Vacant Lots \n 7. Street Light Outage \n 8. Property Maintenance \n 9. Street Trees \n 10. Other",
+          },
+        ]);
+      } else {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Would you like to submit any supporting media including images or videos? [Y/N]",
+          },
+        ]);
+        setCurrentStep(2);
+        setSendResponse(false);
+      }
+    } else if (currentStep === 2){
+      if (msg.toLowerCase() !== 'y' && msg.toLowerCase() !== 'n') {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Please respond with either 'Y' or 'N' to indicate if you would like to include an supporting media.",
+          },
+        ]);
+      } else if (msg.toLowerCase() === 'y') {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Upload your media below. Respond with 'Y' once you've finished uploading media.",
+            widget: "media_upload"
+          },
+        ]);
+        setCurrentStep(3);
+        setSendResponse(false);
+      } else {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Where is this issue located?",
+            widget: "geolocate"
+          },
+        ]);
+        setCurrentStep(4);
+        setSendResponse(false);
+      }
+    } else if (currentStep === 3) {
+      if (msg.toLowerCase() === 'y') {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Where is this issue located?",
+            widget: "geolocate"
+            
+          },
+        ]);
+        setCurrentStep(4);
+      }
+    }
+    else if (currentStep === 4) {
+      setMessageHistory([
+        ...messageHistory,
+        {
+          sender: "bot",
+          message: "Describe the issue.",
+          
+        },
+      ]);
+      setCurrentStep(5);
+    }
+  };
 
   return (
     <div className="chatbot-container">
@@ -264,9 +397,8 @@ export default function ChatBot({ setToggleForm }) {
           return (
             <div className={`message-row ${msg.sender}`}>
               <div className={`message-container ${msg.sender}`}>
-                <p>
-                  {msg.message}
-                </p>
+                <p style={{ whiteSpace: "pre-line" }}>{msg.message}</p>
+                <div> {getWidget(msg?.widget)} </div>
               </div>
             </div>
           );
