@@ -205,37 +205,72 @@ export default function ChatBot({ setToggleForm }) {
     }
   };
 
+
+  const steps = ["name", "issue", "image", "location", "description", "contact", "update", "review", "submit"];
+
+
   // Store user's messages
   const [message, setMessage] = useState("");
+  const [messageHistory, setMessageHistory] = useState([
+    {
+      sender: "bot",
+      message: "Hi. Welcome to EASY 311. What is your name?",
+    },
+  ]);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const [sendResponse, setSendResponse] = useState(false);
+
+
+  const submitMessage = () => {
+    setMessageHistory([...messageHistory, {sender:"user", message:message}]);
+    const msg = message;
+    // messageParser(msg);
+    setSendResponse(true);
+  }
+
+  useEffect(()=>{
+    if (sendResponse) {
+      messageParser(message)
+      setSendResponse(false);
+      setMessage(""); 
+    }
+  }, [sendResponse])
+
   const handleKeyUp = async (e) => {
     const code = e.keyCode;
     if (code === 13) {
-      console.log("message ", message);
-      setMessage("");
+      submitMessage();
     }
-  }
+  };
 
   const handleClick = (e) => {
-    console.log("message ", message);
-    setMessage("");
-  }
+    submitMessage();
+  };
 
+  const messageParser = (msg) => {
+    console.log("in parser")
+    if (currentStep === 0) {
+      setMessageHistory([...messageHistory, {sender:"bot", message:`Nice to meet you ${msg}!`}])
+    }
+
+  }
 
 
   return (
     <div className="chatbot-container">
       <div className="messages">
-        <div className="message-row bot">
-          <div className="message-container bot">
-            <p>vfsdkbnjkdbnigfsklbma;nvamvkasnfjkvbgkjfadbgkjfadngvfakdnvla</p>
-          </div>
-        </div>
-
-        <div className="message-row user">
-          <div className="message-container user">
-            <p>vfsdkbnjkdbnigfsklbma;nvamvkasnfjkvbgkjfadbgkjfadngvfakdnvla</p>
-          </div>
-        </div>
+        {messageHistory.map((msg) => {
+          return (
+            <div className={`message-row ${msg.sender}`}>
+              <div className={`message-container ${msg.sender}`}>
+                <p>
+                  {msg.message}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="response">
@@ -249,9 +284,7 @@ export default function ChatBot({ setToggleForm }) {
           }}
           onKeyUp={handleKeyUp}
         />
-        <button className="send-message"
-        onClick={handleClick}
-        >
+        <button className="send-message" onClick={handleClick}>
           <FontAwesomeIcon icon={faPaperPlane} />
         </button>
       </div>

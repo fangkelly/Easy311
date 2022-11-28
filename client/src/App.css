@@ -654,6 +654,13 @@ input::file-selector-button,
   flex-direction: column;
   height: 100%;
   row-gap: 2rem;
+  overflow: scroll;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.chatbot-container::-webkit-scrollbar {
+  display: none;
 }
 
 .messages {
@@ -661,6 +668,14 @@ input::file-selector-button,
   flex-direction: column;
   row-gap: 2rem;
   height: 100%;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.messages-container::-webkit-scrollbar {
+  display: none !important;
 }
 
 .message-row {

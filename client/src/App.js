@@ -314,7 +314,7 @@ function App() {
           serviceStats: serviceStats,
           total: total,
           avg_resolution: running_time / 1000 / num_closed,
-          trend: ((total - trendData.length)*100/trendData.length).toFixed(2)
+          trend: ((total - trendData?.length)*100/trendData?.length).toFixed(2) || 0
         };
       });
     }
