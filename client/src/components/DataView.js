@@ -55,6 +55,14 @@ const TIME_RANGE = [
   "Today",
 ];
 
+
+const compareTime = {
+  "Last 30 days": "the month before",
+  "Last 7 days": "the week before",
+  "Today": "the day before",
+}
+
+
 const NEIGHBORHOODS = neighborhoods;
 
 const pointInNeighborhood = (coord) => {
@@ -274,7 +282,7 @@ export default function DataView({
               <p className="nor-trend">{stats.trend}%</p>
             </div>
           </div>
-          <p className="nor-sub">compared to last year</p>
+          <p className="nor-sub">compared to {compareTime[timeRange]}</p>
           <div className="dataView-filter">
             <SearchBox
               neighborhood={neighborhood}

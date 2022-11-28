@@ -702,7 +702,7 @@ input::file-selector-button,
 .send-message {
   background-color: transparent;
   color: white;
-  border: none;
+  border: 1px solid var(--gray);
 }
 
 /* UTIl */

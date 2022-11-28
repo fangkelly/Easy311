@@ -205,19 +205,22 @@ export default function ChatBot({ setToggleForm }) {
     }
   };
 
-  const steps = {
-    1: {
-      message: "Welcome to EASY 311! What is your name?",
-      trigger: 2,
-    },
-    2: {
-      user: true,
-      trigger: 3,
-    },
-    3: {
-      message: "Nice to meet you ",
-    },
-  };
+  // Store user's messages
+  const [message, setMessage] = useState("");
+  const handleKeyUp = async (e) => {
+    const code = e.keyCode;
+    if (code === 13) {
+      console.log("message ", message);
+      setMessage("");
+    }
+  }
+
+  const handleClick = (e) => {
+    console.log("message ", message);
+    setMessage("");
+  }
+
+
 
   return (
     <div className="chatbot-container">
@@ -236,9 +239,20 @@ export default function ChatBot({ setToggleForm }) {
       </div>
 
       <div className="response">
-        <input placeholder="Type in your response" type="text" />
-        <button className="send-message">
-            <FontAwesomeIcon icon={faPaperPlane}/>
+        <input
+          placeholder="Type in your response"
+          type="text"
+          id="chatbot-input"
+          value={message}
+          onChange={(e) => {
+            setMessage(e.target.value);
+          }}
+          onKeyUp={handleKeyUp}
+        />
+        <button className="send-message"
+        onClick={handleClick}
+        >
+          <FontAwesomeIcon icon={faPaperPlane} />
         </button>
       </div>
 
