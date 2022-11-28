@@ -214,7 +214,6 @@ export default function SubmissionForm({ setToggleForm }) {
   return (
     <div className="card card-style">
       <div className="card-container form-container">
-        {geo.geoLocateTitle && <LoadingWheel heading={geo.geoLocateTitle} loader={geo.geoLocateLoader} text={geo.geoLocateDialog} closeFunction={setToggleForm}/>}
 
         <div
           style={{
@@ -236,7 +235,7 @@ export default function SubmissionForm({ setToggleForm }) {
 
         
 
-        <ChatBot/>
+        <ChatBot setToggleForm={setToggleForm}/>
       </div>
     </div>
   );

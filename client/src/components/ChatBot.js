@@ -32,6 +32,7 @@ export default function ChatBot({ setToggleForm }) {
     email: null,
     address: null,
     name: null,
+    phone: null
   });
 
   const [geo, setGeo] = useState({});
@@ -40,8 +41,21 @@ export default function ChatBot({ setToggleForm }) {
     console.log(response);
   }, [response]);
 
+
   const setCategory = (newCategory) => {
-    setResponse({ ...response, category: newCategory });
+    const categoryMap = {
+      1: "Illegal Dumping",
+      2: "Rubbish and Recycling",
+      3: "Abandoned Vehicle",
+      4: "Pothole Repair",
+      5: "Graffiti Removal",
+      6: "Vacant Lots",
+      7: "Street Light Outage",
+      8: "Property Maintenance",
+      9: "Street Trees",
+      10: "Other"
+    }
+    setResponse({ ...response, category: categoryMap[newCategory] });
   };
 
   const setDescription = (newDescription) => {
@@ -54,6 +68,10 @@ export default function ChatBot({ setToggleForm }) {
 
   const setEmail = (newEmail) => {
     setResponse({ ...response, email: newEmail });
+  };
+
+  const setPhone = (newPhone) => {
+    setResponse({ ...response, phone: newPhone });
   };
 
   const setSubscribe = (newSubscribe) => {
@@ -86,6 +104,7 @@ export default function ChatBot({ setToggleForm }) {
   };
 
   const handleUploadImage = (e) => {
+    setSendResponse(true);
     console.log("triggered");
     let newUpload = [];
 
@@ -205,19 +224,6 @@ export default function ChatBot({ setToggleForm }) {
     }
   };
 
-  const steps = [
-    "name",
-    "issue",
-    "image1",
-    "image2",
-    "location",
-    "description",
-    "contact",
-    "update",
-    "review",
-    "submit",
-  ];
-
   // Store user's messages
   const [message, setMessage] = useState("");
   const [messageHistory, setMessageHistory] = useState([
@@ -248,8 +254,7 @@ export default function ChatBot({ setToggleForm }) {
     }
   }, [sendResponse]);
 
-
-  useEffect(()=>{
+  useEffect(() => {
     const chatbot = document.getElementsByClassName("messages")[0];
     chatbot.scrollTop = chatbot.scrollHeight;
   }, [messageHistory]);
@@ -269,8 +274,8 @@ export default function ChatBot({ setToggleForm }) {
     console.log(widgetType);
     if (widgetType === "media_upload") {
       return (
-       <div>
-        <input
+        <div>
+          <input
             type="file"
             id="files"
             multiple
@@ -282,34 +287,44 @@ export default function ChatBot({ setToggleForm }) {
           {response.media && response.media.length > 1 && (
             <SlideShow items={response.media} />
           )}
-          
-       </div>
-      )
+        </div>
+      );
     } else if (widgetType === "geolocate") {
       return (
         <button id={"geolocate-btn"} onClick={geolocate}>
-                Use my location
-              </button>
-      )
+          Use my location
+        </button>
+      );
     }
-  }
+  };
 
   const messageParser = (msg) => {
-    console.log("in parser");
-    if (currentStep === 0) {
+
+
+    if (currentStep === -1) {
       setMessageHistory([
         ...messageHistory,
-        { sender: "bot", message: `Nice to meet you ${msg}!` },
         {
           sender: "bot",
-          message: `What type of service request would you like to make? Please select a number from below: 
+          message: "Hi. Welcome to EASY 311. What is your name?",
+        },
+      ]);
+      setCurrentStep(0);
+    }
+    
+    else if (currentStep === 0) {
+      setName(msg);
+      setMessageHistory([
+        ...messageHistory,
+        {
+          sender: "bot",
+          message: `Nice to meet you ${msg}! \nWhat type of service request would you like to make? Please select a number from below: 
           \n 1. Illegal Dumping \n 2. Rubbish and Recycling \n 3. Abandoned Vehicle \n 4. Pothole Repair \n 5. Graffiti Removal \n 6. Vacant Lots \n 7. Street Light Outage \n 8. Property Maintenance \n 9. Street Trees \n 10. Other`,
         },
       ]);
       setCurrentStep(1);
       setSendResponse(false);
-    }
-    else if (currentStep === 1) {
+    } else if (currentStep === 1) {
       let option = parseInt(msg);
       if (!option || option < 1 || option > 10) {
         setMessageHistory([
@@ -321,32 +336,35 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
       } else {
+        setCategory(option);
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
-            message: "Would you like to submit any supporting media including images or videos? [Y/N]",
+            message:
+              "Would you like to submit any supporting media including images or videos? [Y/N]",
           },
         ]);
         setCurrentStep(2);
         setSendResponse(false);
       }
-    } else if (currentStep === 2){
-      if (msg.toLowerCase() !== 'y' && msg.toLowerCase() !== 'n') {
+    } else if (currentStep === 2) {
+      if (msg.toLowerCase() !== "y" && msg.toLowerCase() !== "n") {
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
-            message: "Please respond with either 'Y' or 'N' to indicate if you would like to include an supporting media.",
+            message:
+              "Please respond with either 'Y' or 'N' to indicate if you would like to include an supporting media.",
           },
         ]);
-      } else if (msg.toLowerCase() === 'y') {
+      } else if (msg.toLowerCase() === "y") {
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
-            message: "Upload your media below. Respond with 'Y' once you've finished uploading media.",
-            widget: "media_upload"
+            message: "Upload your media below.",
+            widget: "media_upload",
           },
         ]);
         setCurrentStep(3);
@@ -357,41 +375,179 @@ export default function ChatBot({ setToggleForm }) {
           {
             sender: "bot",
             message: "Where is this issue located?",
-            widget: "geolocate"
+            widget: "geolocate",
           },
         ]);
         setCurrentStep(4);
         setSendResponse(false);
       }
     } else if (currentStep === 3) {
-      if (msg.toLowerCase() === 'y') {
-        setMessageHistory([
-          ...messageHistory,
-          {
-            sender: "bot",
-            message: "Where is this issue located?",
-            widget: "geolocate"
-            
-          },
-        ]);
-        setCurrentStep(4);
-      }
-    }
-    else if (currentStep === 4) {
+      setMessageHistory([
+        ...messageHistory,
+        {
+          sender: "bot",
+          message:
+            "Where is this issue located? You can type in an address or use your current location.",
+          widget: "geolocate",
+        },
+      ]);
+      setCurrentStep(4);
+      setSendResponse(false);
+    } else if (currentStep === 4) {
+      setAddress(msg);
       setMessageHistory([
         ...messageHistory,
         {
           sender: "bot",
           message: "Describe the issue.",
-          
         },
       ]);
       setCurrentStep(5);
+      setSendResponse(false);
+    } else if (currentStep === 5) {
+      setDescription(msg);
+      setMessageHistory([
+        ...messageHistory,
+        {
+          sender: "bot",
+          message:
+            "If you would like to remain updated on the status of your request, please indicate how you would like to be contacted: \n \n 1. E-mail address \n 2. Phone Number \n 3. I do not want to be updated on the status of this service request.",
+        },
+      ]);
+      setCurrentStep(6);
+      setSendResponse(false);
+    } else if (currentStep === 6) {
+      let option = parseInt(msg);
+      if (!option || option < 1 || option > 3) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message:
+              "Please select a valid number from below: \n 1. E-mail address \n 2. Phone Number \n 3. I do not want to be updated on the status of this service request.",
+          },
+        ]);
+      } else if (option === 1) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "What is your email address?",
+          },
+        ]);
+
+        setCurrentStep(7);
+        setSendResponse(false);
+      } else if (option === 2) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "What is your phone number?",
+          },
+        ]);
+
+        setCurrentStep(8);
+        setSendResponse(false);
+      } else {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `Thank you for submitting via EASY 311. Here is what we have from you: \n
+            Name: ${response.name}
+            Category: ${response.category}
+            Location: ${response.address}
+            Description: ${response.description}
+            Email: ${response.email}
+            Phone: ${response.phone}
+            Media: ${response.media?.length || 0} files
+
+            Feel free to submit a new request by typing anything.
+            `,
+          },
+        ]);
+        setCurrentStep(-1);
+        setSendResponse(true);
+      }
+    } else if (currentStep === 7) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let email = msg;
+      if (re.test(email)) {
+        setEmail(email);
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `Thank you for submitting via EASY 311. Here is what we have from you: \n
+            Name: ${response.name}
+            Category: ${response.category}
+            Location: ${response.address}
+            Description: ${response.description}
+            Email: ${email}
+            Phone: ${response.phone}
+            Media: ${response.media?.length || 0} files
+
+            Feel free to submit a new request by typing anything.
+            `,
+          },
+        ]);
+        setCurrentStep(-1);
+      } else {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Please submit a valid email address.",
+          },
+        ]);
+      }
+    } else if (currentStep === 8) {
+      const re = /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
+      let number = msg;
+      if (re.test(number)) {
+        setPhone(number);
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `Thank you for submitting via EASY 311. Here is what we have from you: \n
+            Name: ${response.name}
+            Category: ${response.category}
+            Location: ${response.address}
+            Description: ${response.description}
+            Email: ${response.email}
+            Phone: ${number}
+            Media: ${response.media?.length || 0} files
+
+            Feel free to submit a new request by typing anything.
+            `,
+          },
+        ]);
+        setCurrentStep(-1);
+      } else {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Please submit a valid 10-digit phone number.",
+          },
+        ]);
+      }
     }
   };
 
   return (
     <div className="chatbot-container">
+      {geo.geoLocateTitle && (
+        <LoadingWheel
+          heading={geo.geoLocateTitle}
+          loader={geo.geoLocateLoader}
+          text={geo.geoLocateDialog}
+          closeFunction={setToggleForm}
+        />
+      )}
+
       <div className="messages">
         {messageHistory.map((msg) => {
           return (
