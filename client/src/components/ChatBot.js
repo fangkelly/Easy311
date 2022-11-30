@@ -107,6 +107,18 @@ export default function ChatBot({ setToggleForm }) {
     document.body.appendChild(script);
   }, []);
 
+
+  // useEffect(() => {
+  //   const script = document.createElement("script");
+  //   script.src =
+  //     "https://apis.google.com/js/client.js";
+  //   script.async = true;
+  //   //script.onload = () => this.scriptLoaded();
+  //   document.body.appendChild(script);
+  // }, []);
+
+  
+
   const options = {
     maxSizeMB: 1,
     maxWidthOrHeight: 1920,
@@ -256,9 +268,9 @@ export default function ChatBot({ setToggleForm }) {
     setSendResponse(true);
   };
 
-  useEffect(()=>{
-    window.gapi.load('client:auth2', initClient)
-  }, [])
+  // useEffect(()=>{
+  //   window.gapi.load('client:auth2', initClient)
+  // }, [])
 
   const initClient = () => {
     window.gapi.client.init({
@@ -293,26 +305,26 @@ export default function ChatBot({ setToggleForm }) {
     submitMessage();
   };
 
-  const handleSubmit = () => {
-    const params = {
-      spreadsheetId: SPREADSHEET_ID,
-      range:"Sheet1",
-      valueInputOption:"Raw",
-      insertDataOption:"INSERT_ROWS"
-    };
+  // const handleSubmit = () => {
+  //   const params = {
+  //     spreadsheetId: SPREADSHEET_ID,
+  //     range:"Sheet1",
+  //     valueInputOption:"Raw",
+  //     insertDataOption:"INSERT_ROWS"
+  //   };
 
-    const valueRangeBody = {
-      'majorDimension':'ROWS',
-      'values': [response.name, response.category, response.media, response.location, response.description, response.email, response.number]
-    };
+  //   const valueRangeBody = {
+  //     'majorDimension':'ROWS',
+  //     'values': [response.name, response.category, response.media, response.location, response.description, response.email, response.number]
+  //   };
 
-    let request = window.gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
-    request.then(function(response) {
-      console.log(response.result);
-    }, function (reason) {
-      console.error('error: ' + reason.result.error.message)
-    })
-  }
+  //   let request = window.gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
+  //   request.then(function(response) {
+  //     console.log(response.result);
+  //   }, function (reason) {
+  //     console.error('error: ' + reason.result.error.message)
+  //   })
+  // }
 
   const getWidget = (widgetType) => {
     console.log(widgetType);
@@ -513,7 +525,7 @@ export default function ChatBot({ setToggleForm }) {
         ]);
         setCurrentStep(-1);
         setSendResponse(true);
-        handleSubmit();
+        // handleSubmit();
       }
     } else if (currentStep === 7) {
       const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -538,7 +550,7 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
         setCurrentStep(-1);
-        handleSubmit();
+        // handleSubmit();
       } else {
         setMessageHistory([
           ...messageHistory,
@@ -570,7 +582,7 @@ export default function ChatBot({ setToggleForm }) {
             `,
           },
         ]);
-        handleSubmit();
+        // handleSubmit();
       } else {
         setMessageHistory([
           ...messageHistory,
@@ -590,7 +602,11 @@ export default function ChatBot({ setToggleForm }) {
           heading={geo.geoLocateTitle}
           loader={geo.geoLocateLoader}
           text={geo.geoLocateDialog}
-          closeFunction={setToggleForm}
+          closeFunction={()=>{setGeo({
+            geoLocateTitle: null,
+            geoLocateDialog: null,
+            geoLocateLoader: false,
+          });}}
         />
       )}
 

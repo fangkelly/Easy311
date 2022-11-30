@@ -7,7 +7,7 @@ export default function LoadingWheel({heading, loader, text, closeFunction}) {
         <div className="loadingWheel-container">
             {!loader &&  <button id="closeLoader-btn"
             onClick={(e) => {
-                e.stopPropagation(e);
+                e.stopPropagation();
               closeFunction(false);
             }}
           >
