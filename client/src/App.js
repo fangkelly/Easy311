@@ -206,8 +206,8 @@ function App() {
           filterStatus.includes(d.properties.status) &&
           (filterCategory.includes(d.properties.service_name) ||
             (filterCategory.includes("Other") &&
-              !filterCategory.includes(d.properties.service_name))) &&
-          validateTime(d.properties.requested_datetime, timeRange)
+              !filterCategory.includes(d.properties.service_name))) 
+          
       );
     }
   }, [filterStatus, filterCategory, search, analysisData]);
@@ -327,6 +327,15 @@ function App() {
 
 
   const [comment, setComment] = useState("");
+
+  const handleKeyUp = async (e) => {
+    const code = e.keyCode;
+    if (code === 13) {
+      console.log(pointData?.properties?.objectid)
+
+      // TODO: store comment in database
+    }
+  };
   
 
 
@@ -450,7 +459,7 @@ function App() {
                         onChange={(e) => {
                           setComment(e.target.value);
                         }}
-                        // onKeyUp={handleKeyUp}
+                        onKeyUp={handleKeyUp}
                       />
                     </div>
 
