@@ -715,6 +715,60 @@ input::file-selector-button,
   border: 1px solid var(--gray);
 }
 
+
+/* REACT + COMMENT */
+
+.reactComment-container {
+  color: white;
+  padding: 1rem;
+  border-top: 0.5px solid var(--transparent-gray);
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: row;
+  column-gap: 0.25rem;
+  align-items: center;
+}
+
+.comment-container, .react-container, .share-btn {
+  background-color: rgb(256, 256, 256, 0.1);
+  border-radius: 30px;
+  padding: 0.25rem 0.75rem;
+
+}
+
+
+.comment-container {
+ display: flex;
+ flex-direction: row;
+ flex:1;
+ column-gap: 1rem;
+ align-items: center;
+}
+
+.comment-info {
+  display: flex;
+  flex-direction: row;
+  column-gap: 0.5rem;
+  align-items: center;
+}
+
+#comment-input {
+  background-color: transparent;
+  border: none;
+  color: white;
+  width: 100%;
+}
+
+.react-container {
+
+}
+
+.share-btn {
+
+}
+
+
+
 /* UTIl */
 
 #data-dd {
@@ -777,4 +831,10 @@ hr {
   flex-direction: column;
   justify-content: space-between;
   row-gap: 0.5rem;
+}
+
+.vr {
+  height: 20px;
+  background-color: var(--point-gray);
+  width: 1px;
 }

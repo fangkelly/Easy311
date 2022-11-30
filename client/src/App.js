@@ -10,6 +10,8 @@ import {
   faChevronDown,
   faLayerGroup,
   faPlus,
+  faCommentDots,
+  faShareNodes,
 } from "@fortawesome/free-solid-svg-icons";
 import "./App.css";
 import Map from "./components/Map.js";
@@ -62,7 +64,7 @@ const TIME_RANGE_DAYS = {
   "This year": 365,
   "Last 30 days": 30,
   "Last 7 days": 7,
-  "Today": 1,
+  Today: 1,
 };
 
 const CATEGORY_MINUS_OTHER = CATEGORY_OPTIONS.filter(
@@ -143,11 +145,6 @@ function App() {
   const [points, setPoints] = useState(emptySet);
   const [trendData, setTrendData] = useState(null);
 
-  // maps hashed coordinate string keys to point objects representing individual service request
-  // maps neighborhoods to all points that within time frame inside the neighborhood
-  // const [coordDict, setCoordDict] = useState({});
-  // const [neighborhoodDict, setNeighborhoodDict] = useState({});
-
   const [dataDict, setDataDict] = useState({
     coordDict: {},
     neighborhoodDict: {},
@@ -185,11 +182,10 @@ function App() {
   };
 
   useEffect(() => {
-    
     fetch(`/analysis_data?time=${timeRange}&trend=true`)
-    .then((res) => res.json())
-    .then((data) => setTrendData(data))
-  },[timeRange])
+      .then((res) => res.json())
+      .then((data) => setTrendData(data));
+  }, [timeRange]);
 
   useEffect(() => {
     fetch(`/analysis_data?time=${timeRange}&trend=${false}`)
@@ -206,6 +202,7 @@ function App() {
     if (analysisData) {
       return analysisData.filter(
         (d) =>
+          d.properties.objectid.toString().startsWith(search) &&
           filterStatus.includes(d.properties.status) &&
           (filterCategory.includes(d.properties.service_name) ||
             (filterCategory.includes("Other") &&
@@ -215,7 +212,6 @@ function App() {
     }
   }, [filterStatus, filterCategory, search, analysisData]);
 
-  // TODO: CALC: avg time dur stats and perc change since last time range stats
   useEffect(() => {
     let serviceStats = {};
     let total = 0;
@@ -254,18 +250,28 @@ function App() {
           }
         }
 
-       
         const poly = polygon(neighborhood.geometry.coordinates[0]);
-        const neighborhood_trend =  trendData.filter(d => booleanPointInPolygon(point(d.geometry.coordinates), poly));
-        console.log("TREND ", ((total - neighborhood_trend.length)*100/neighborhood_trend.length).toFixed(2));
+        const neighborhood_trend = trendData.filter((d) =>
+          booleanPointInPolygon(point(d.geometry.coordinates), poly)
+        );
+        console.log(
+          "TREND ",
+          (
+            ((total - neighborhood_trend.length) * 100) /
+            neighborhood_trend.length
+          ).toFixed(2)
+        );
 
         setStats((stats) => {
           return {
             ...stats,
             serviceStats: serviceStats,
             total: total,
-            avg_resolution: (running_time / 1000) / num_closed,
-            trend: (((total - neighborhood_trend.length)*100)/neighborhood_trend.length).toFixed(2)
+            avg_resolution: running_time / 1000 / num_closed,
+            trend: (
+              ((total - neighborhood_trend.length) * 100) /
+              neighborhood_trend.length
+            ).toFixed(2),
           };
         });
       }
@@ -301,12 +307,8 @@ function App() {
             running_time += diff;
             serviceStats[key].running_time += diff;
           }
-
         }
       }
-
-    
-
 
       setStats((stats) => {
         return {
@@ -314,11 +316,19 @@ function App() {
           serviceStats: serviceStats,
           total: total,
           avg_resolution: running_time / 1000 / num_closed,
-          trend: ((total - trendData?.length)*100/trendData?.length).toFixed(2) || 0
+          trend:
+            (((total - trendData?.length) * 100) / trendData?.length).toFixed(
+              2
+            ) || 0,
         };
       });
     }
   }, [dataDict.neighborhoodDict, neighborhood]);
+
+
+  const [comment, setComment] = useState("");
+  
+
 
   return (
     <div className="App">
@@ -368,60 +378,89 @@ function App() {
             <Sheet.Header />
             <Sheet.Content>
               {
-                <div className="bottomSheet">
-                  <p className="backDrop-sub bold">
-                    {pointData?.properties?.service_name}
-                  </p>
-                  <p className="backDrop-sub bold">Updates</p>
-                  <VerticalTimeline lineColor={"#AAAAAA"}>
-                    {[
-                      "requested_datetime",
-                      "updated_datetime",
-                      "closed_datetime",
-                    ].map((time) => {
-                      let convertedDate = convertDate(
-                        pointData?.properties?.[time]
-                      );
-                      if (convertedDate) {
-                        return (
-                          <VerticalTimelineElement
-                            key={time}
-                            className="vertical-timeline-element"
-                            contentStyle={{
-                              background: "transparent",
-                              color: "#fff",
-                              padding: "0",
-                              border: "none",
-                              boxShadow: "none",
-                            }}
-                            contentArrowStyle={{
-                              display: "none",
-                            }}
-                            date={convertedDate}
-                            iconStyle={{
-                              background: "#AAAAAA",
-                              color: "#AAAAAA",
-                              boxShadow: "none",
-                              height: "14px",
-                              width: "14px",
-                              left: "11px",
-                            }}
-                          >
-                            <p className="vertical-timeline-element-subtitle">
-                              {time == "requested_datetime"
-                                ? "Service request opened"
-                                : time == "updated_datetime"
-                                ? pointData.properties?.status_notes
-                                  ? pointData.properties.status_notes
-                                  : "Service request updated"
-                                : "Service request closed"}
-                            </p>
-                          </VerticalTimelineElement>
+                <>
+                  <div className="bottomSheet">
+                    <p className="backDrop-sub bold">
+                      {pointData?.properties?.service_name}
+                    </p>
+                    <p className="backDrop-sub bold">Updates</p>
+                    <VerticalTimeline lineColor={"#AAAAAA"}>
+                      {[
+                        "requested_datetime",
+                        "updated_datetime",
+                        "closed_datetime",
+                      ].map((time) => {
+                        let convertedDate = convertDate(
+                          pointData?.properties?.[time]
                         );
-                      }
-                    })}
-                  </VerticalTimeline>
-                </div>
+                        if (convertedDate) {
+                          return (
+                            <VerticalTimelineElement
+                              key={time}
+                              className="vertical-timeline-element"
+                              contentStyle={{
+                                background: "transparent",
+                                color: "#fff",
+                                padding: "0",
+                                border: "none",
+                                boxShadow: "none",
+                              }}
+                              contentArrowStyle={{
+                                display: "none",
+                              }}
+                              date={convertedDate}
+                              iconStyle={{
+                                background: "#AAAAAA",
+                                color: "#AAAAAA",
+                                boxShadow: "none",
+                                height: "14px",
+                                width: "14px",
+                                left: "11px",
+                              }}
+                            >
+                              <p className="vertical-timeline-element-subtitle">
+                                {time == "requested_datetime"
+                                  ? "Service request opened"
+                                  : time == "updated_datetime"
+                                  ? pointData.properties?.status_notes
+                                    ? pointData.properties.status_notes
+                                    : "Service request updated"
+                                  : "Service request closed"}
+                              </p>
+                            </VerticalTimelineElement>
+                          );
+                        }
+                      })}
+                    </VerticalTimeline>
+                  </div>
+                  <div className="reactComment-container">
+                    {/* TODO: react and comment */}
+                    <div className="comment-container">
+                      <div className="comment-info">
+                        <FontAwesomeIcon icon={faCommentDots} />3
+                      </div>
+
+                      <div className="vr"></div>
+
+                      <input
+                        placeholder="Comment..."
+                        type="search"
+                        id="comment-input"
+                        value={comment}
+                        onChange={(e) => {
+                          setComment(e.target.value);
+                        }}
+                        // onKeyUp={handleKeyUp}
+                      />
+                    </div>
+
+                    <div className="share-btn">
+                      <FontAwesomeIcon icon={faShareNodes} />
+                    </div>
+
+                    <div className="react-container">hi</div>
+                  </div>
+                </>
               }
             </Sheet.Content>
           </Sheet.Container>
@@ -430,7 +469,7 @@ function App() {
             <div
               style={{
                 padding: "1rem 1rem",
-                height: "calc(100vh - 2rem)",
+                height: "calc(100vh)",
                 width: "calc(100vw)",
                 backgroundSize: "cover",
                 backgroundImage: `url(${
@@ -465,7 +504,7 @@ function App() {
           <input
             type="search"
             id="searchBar"
-            placeholder="Search..."
+            placeholder="Search for a service request by ID"
             onChange={(e) => setSearch(e.target.value)}
           ></input>
           <button
