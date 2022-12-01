@@ -181,6 +181,24 @@ function App() {
     }
   };
 
+  const [comments, setComments] = useState(null);
+
+  useEffect(() => {
+    if (pointData) {
+      fetch(`/comments?id=${pointData.properties.service_request_id}`)
+        .then((res) => {
+          if (res) return res.json();
+        })
+        .then((d) => setComments(d));
+    } else {
+      setComments(null);
+    }
+  }, [pointData]);
+
+  useEffect(() => {
+    console.log(comments);
+  }, [comments]);
+
   useEffect(() => {
     fetch(`/analysis_data?time=${timeRange}&trend=true`)
       .then((res) => res.json())
@@ -202,12 +220,11 @@ function App() {
     if (analysisData) {
       return analysisData.filter(
         (d) =>
-          d.properties.objectid.toString().startsWith(search) &&
+          d.properties.service_request_id.toString().startsWith(search) &&
           filterStatus.includes(d.properties.status) &&
           (filterCategory.includes(d.properties.service_name) ||
             (filterCategory.includes("Other") &&
-              !filterCategory.includes(d.properties.service_name))) 
-          
+              !filterCategory.includes(d.properties.service_name)))
       );
     }
   }, [filterStatus, filterCategory, search, analysisData]);
@@ -325,19 +342,14 @@ function App() {
     }
   }, [dataDict.neighborhoodDict, neighborhood]);
 
-
   const [comment, setComment] = useState("");
 
   const handleKeyUp = async (e) => {
     const code = e.keyCode;
     if (code === 13) {
-      console.log(pointData?.properties?.objectid)
-
       // TODO: store comment in database
     }
   };
-  
-
 
   return (
     <div className="App">
@@ -448,7 +460,7 @@ function App() {
                       <div className="comment-info">
                         <FontAwesomeIcon icon={faCommentDots} />3
                       </div>
-
+                      {/* 
                       <div className="vr"></div>
 
                       <input
@@ -460,7 +472,7 @@ function App() {
                           setComment(e.target.value);
                         }}
                         onKeyUp={handleKeyUp}
-                      />
+                      /> */}
                     </div>
 
                     <div className="share-btn">
