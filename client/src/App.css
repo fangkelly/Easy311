@@ -787,6 +787,15 @@ input::file-selector-button,
 }
 
 .react-container {
+  display: flex;
+  flex-direction: row;
+  column-gap: 0.5rem;
+}
+
+.emoji-container {
+  display: flex;
+  flex-direction: row;
+  column-gap: 0.25rem;
 }
 
 .share-btn {

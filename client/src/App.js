@@ -30,6 +30,10 @@ import { point, polygon } from "@turf/helpers";
 import neighborhoods from "./data/neighborhoods.json";
 import { timer } from "d3-timer";
 
+import emoji_1 from "./icons/emoji_1.svg";
+import emoji_2 from "./icons/emoji_2.svg";
+
+
 const MONTHS = {
   "01": "January",
   "02": "February",
@@ -555,7 +559,10 @@ function App() {
                   <FontAwesomeIcon icon={faShareNodes} />
                 </div>
 
-                <div className="react-container">hi</div>
+                <div className="react-container">
+                  <div className="emoji-container"><img src={emoji_1}/> <p>1</p></div>
+                  <div className="emoji-container"><img src={emoji_2}/> <p>2</p></div>
+                </div>
               </div>
             </Sheet.Content>
           </Sheet.Container>
