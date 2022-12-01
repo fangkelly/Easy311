@@ -87,28 +87,32 @@ const validateTime = (datetime, timeRange) => {
 
 const convertDate = (datetime) => {
   if (datetime) {
-    let dt = datetime.split("T");
-    let date = dt[0].split("-");
-    let time = dt[1].slice(0, -1).split(":");
+    try {
+      let dt = datetime.split("T");
+      let date = dt[0].split("-");
+      let time = dt[1].slice(0, -1).split(":");
 
-    date = `${MONTHS[date[1]]} ${date[2]}, ${date[0]}`;
-    let convertedTime, AM;
+      date = `${MONTHS[date[1]]} ${date[2]}, ${date[0]}`;
+      let convertedTime, AM;
 
-    if (time[0] == 0) {
-      convertedTime = 12;
-      AM = true;
-    } else if (time[0] < 12) {
-      convertedTime = time[0];
-      AM = true;
-    } else {
-      convertedTime = 24 - time[0];
-      AM = false;
+      if (time[0] == 0) {
+        convertedTime = 12;
+        AM = true;
+      } else if (time[0] < 12) {
+        convertedTime = time[0];
+        AM = true;
+      } else {
+        convertedTime = 24 - time[0];
+        AM = false;
+      }
+
+      time[0] = convertedTime;
+      time = time.join(":");
+
+      return `${date} ${time} ${AM ? "AM" : "PM"}`;
+    } catch {
+      return;
     }
-
-    time[0] = convertedTime;
-    time = time.join(":");
-
-    return `${date} ${time} ${AM ? "AM" : "PM"}`;
   }
   return;
 };
@@ -182,6 +186,7 @@ function App() {
   };
 
   const [comments, setComments] = useState(null);
+  const [commentSection, setCommentSection] = useState(false);
 
   useEffect(() => {
     if (pointData) {
@@ -193,11 +198,12 @@ function App() {
     } else {
       setComments(null);
     }
-  }, [pointData]);
+  }, [pointData, comments]);
 
-  useEffect(() => {
-    console.log(comments);
-  }, [comments]);
+  useEffect(()=>{
+    setCommentSection(false);
+  },[pointData])
+
 
   useEffect(() => {
     fetch(`/analysis_data?time=${timeRange}&trend=true`)
@@ -346,8 +352,45 @@ function App() {
 
   const handleKeyUp = async (e) => {
     const code = e.keyCode;
-    if (code === 13) {
-      // TODO: store comment in database
+    if (code === 13 && comment) {
+      let newComments;
+      const currentTime = new Date();
+      const newComment = { text: comment, time: currentTime };
+      if (comments) {
+        newComments = comments.comments;
+        newComments.push(newComment);
+      } else {
+        newComments = [newComment];
+      }
+
+      const data = {
+        id: pointData.properties.service_request_id,
+        comments: newComments,
+      };
+
+      setComments(data);
+
+
+
+      fetch("/add_comment", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((res) => {
+          if (!res.ok) {
+            console.log("error");
+          } else {
+            console.log("successfully submitted comment");
+          }
+          setComment("");
+        })
+        .catch((err) => {
+          console.log("error");
+        });
     }
   };
 
@@ -398,12 +441,15 @@ function App() {
           <Sheet.Container>
             <Sheet.Header />
             <Sheet.Content>
-              {
-                <>
-                  <div className="bottomSheet">
-                    <p className="backDrop-sub bold">
-                      {pointData?.properties?.service_name}
-                    </p>
+              <div
+                className="bottomSheet"
+                style={{ minHeight: commentSection ? "65vh" : "30vh" }}
+              >
+                <p className="backDrop-sub bold">
+                  {pointData?.properties?.service_name}
+                </p>
+                {!commentSection ? (
+                  <>
                     <p className="backDrop-sub bold">Updates</p>
                     <VerticalTimeline lineColor={"#AAAAAA"}>
                       {[
@@ -452,15 +498,43 @@ function App() {
                           );
                         }
                       })}
-                    </VerticalTimeline>
+                    </VerticalTimeline>{" "}
+                  </>
+                ) : (
+                  <>
+                    <p className="backDrop-sub bold">Comments</p>
+                    <div className="comment-section">
+                      {comments?.comments.map((comment) => {
+                        return (
+                          <div className="comment-row">
+                            <div className="comment">{comment.text}</div>
+                            <div className="comment-time">
+                              {convertDate(comment.time)}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="reactComment-container">
+                {/* TODO: react and comment */}
+                <div
+                  className="comment-container"
+                  style={{ flex: commentSection ? 1 : 0 }}
+                >
+                  <div
+                    className="comment-info"
+                    onClick={() => {
+                      setCommentSection(!commentSection);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faCommentDots} />
+                    {comments ? comments.comments.length : 0}
                   </div>
-                  <div className="reactComment-container">
-                    {/* TODO: react and comment */}
-                    <div className="comment-container">
-                      <div className="comment-info">
-                        <FontAwesomeIcon icon={faCommentDots} />3
-                      </div>
-                      {/* 
+                  {commentSection && (
+                    <>
                       <div className="vr"></div>
 
                       <input
@@ -472,17 +546,17 @@ function App() {
                           setComment(e.target.value);
                         }}
                         onKeyUp={handleKeyUp}
-                      /> */}
-                    </div>
+                      />
+                    </>
+                  )}
+                </div>
 
-                    <div className="share-btn">
-                      <FontAwesomeIcon icon={faShareNodes} />
-                    </div>
+                <div className="share-btn">
+                  <FontAwesomeIcon icon={faShareNodes} />
+                </div>
 
-                    <div className="react-container">hi</div>
-                  </div>
-                </>
-              }
+                <div className="react-container">hi</div>
+              </div>
             </Sheet.Content>
           </Sheet.Container>
 

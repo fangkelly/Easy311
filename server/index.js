@@ -31,26 +31,35 @@ app.use(express.static(path.resolve(__dirname, "../client/build")));
 // POST add a new user to the database
 app.post("/add_comment", async (request, response) => {
   console.log(request.body);
-  const model = new commentModel({
-    id: request.body.id,
-    comments: request.body.comments,
-  });
+
+  const string_id = request.body.id.toString();
 
   try {
-    await model.save();
-    response.send(model);
+    db.collection('comments').updateOne(
+      { id: string_id },
+      {
+        $set: {
+          id: string_id ,
+          comments: request.body.comments,
+        },
+      },
+      { upsert: true }
+    );
+    response.status(200).send("success");
+    console.log("success!");
+    // await model.save();
+    // response.send(model);
   } catch (error) {
+    console.log(error);
     response.status(500).send(error);
   }
 });
 
 // GET
 app.get("/comments", async (request, response) => {
-  
   callback = (c) => {
-    console.log(c);
     response.send(c);
-  }
+  };
 
   commentModel.findOne({ id: request.query.id }).exec((err, res) => {
     if (err) {
