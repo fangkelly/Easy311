@@ -32,7 +32,10 @@ import { timer } from "d3-timer";
 
 import emoji_1 from "./icons/emoji_1.svg";
 import emoji_2 from "./icons/emoji_2.svg";
-
+import emoji_3 from "./icons/emoji_3.svg";
+import emoji_4 from "./icons/emoji_4.svg";
+import emoji_5 from "./icons/emoji_5.svg";
+import emoji_6 from "./icons/emoji_6.svg";
 
 const MONTHS = {
   "01": "January",
@@ -202,12 +205,25 @@ function App() {
     } else {
       setComments(null);
     }
-  }, [pointData, comments]);
+  }, [pointData]);
 
-  useEffect(()=>{
+  const [reaction, setReactions] = useState(null);
+
+  useEffect(() => {
+    if (pointData) {
+      fetch(`/reactions?id=${pointData.properties.service_request_id}`)
+        .then((res) => {
+          if (res) return res.json();
+        })
+        .then((d) => setReactions(d));
+    } else {
+      setReactions(null);
+    }
+  }, [pointData]);
+
+  useEffect(() => {
     setCommentSection(false);
-  },[pointData])
-
+  }, [pointData]);
 
   useEffect(() => {
     fetch(`/analysis_data?time=${timeRange}&trend=true`)
@@ -374,8 +390,6 @@ function App() {
 
       setComments(data);
 
-
-
       fetch("/add_comment", {
         method: "POST",
         headers: {
@@ -397,6 +411,48 @@ function App() {
         });
     }
   };
+
+  const addReaction = (r) => {
+
+    console.log("triggered addReaction");
+
+
+    const data = {
+      id: pointData.properties.service_request_id,
+      reactions: {
+        r1:reaction?reaction?.reactions?.r1:0,
+        r2:reaction?reaction?.reactions?.r2:0,
+        r3:reaction?reaction?.reactions?.r3:0,
+        r4:reaction?reaction?.reactions?.r4:0,
+        r5:reaction?reaction?.reactions?.r5:0,
+        // r6:reaction?reaction?.reactions?.r6:0
+      },
+    };
+
+    data.reactions[r] += 1;
+
+    setReactions(data);
+
+    fetch("/add_reaction", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          console.log("error");
+        } else {
+          console.log("successfully submitted comment");
+        }
+        setComment("");
+      })
+      .catch((err) => {
+        console.log("error");
+      });
+  }
 
   return (
     <div className="App">
@@ -535,7 +591,9 @@ function App() {
                     }}
                   >
                     <FontAwesomeIcon icon={faCommentDots} />
-                    {comments ? comments.comments.length : 0}
+                    {comments && comments.comments
+                      ? comments?.comments?.length
+                      : 0}
                   </div>
                   {commentSection && (
                     <>
@@ -555,13 +613,35 @@ function App() {
                   )}
                 </div>
 
-                <div className="share-btn">
+                {/* <div className="share-btn">
                   <FontAwesomeIcon icon={faShareNodes} />
-                </div>
+                </div> */}
 
-                <div className="react-container">
-                  <div className="emoji-container"><img src={emoji_1}/> <p>1</p></div>
-                  <div className="emoji-container"><img src={emoji_2}/> <p>2</p></div>
+                <div className="react-container" style={{maxWidth:commentSection?"0":"", opacity:commentSection?0:1, padding:commentSection?0:"0.25rem 0.75rem", transition:"all 0.4s"}}>
+                  <div className="emoji-container" onClick={()=>{addReaction("r1")}} style={{width:commentSection?"0":""}}>
+                    <img src={emoji_1} />
+                    <p>{reaction ? reaction?.reactions?.r1 : 0}</p>
+                  </div>
+                  <div className="emoji-container" onClick={()=>{addReaction("r2")}} style={{width:commentSection?"0":""}}>
+                    <img src={emoji_2} />{" "}
+                    <p>{reaction ? reaction?.reactions?.r2 : 0}</p>
+                  </div>
+                  <div className="emoji-container" onClick={()=>{addReaction("r3")}} style={{width:commentSection?"0":""}}>
+                    <img src={emoji_3} />{" "}
+                    <p>{reaction ? reaction?.reactions?.r3 : 0}</p>
+                  </div>
+                  <div className="emoji-container" onClick={()=>{addReaction("r4")}} style={{width:commentSection?"0":""}}>
+                    <img src={emoji_4} />{" "}
+                    <p>{reaction ? reaction?.reactions?.r4 : 0}</p>
+                  </div>
+                  <div className="emoji-container" onClick={()=>{addReaction("r5")}} style={{width:commentSection?"0":""}}>
+                    <img src={emoji_5} />{" "}
+                    <p>{reaction ? reaction?.reactions?.r5 : 0}</p>
+                  </div>
+                  {/* <div className="emoji-container" onClick={()=>{addReaction("r6")}} style={{width:commentSection?"0":""}}>
+                    <img src={emoji_6} />{" "}
+                    <p>{reaction ? reaction?.reactions?.r2 : 0}</p>
+                  </div> */}
                 </div>
               </div>
             </Sheet.Content>

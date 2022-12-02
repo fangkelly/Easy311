@@ -1,7 +1,8 @@
 const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
-const commentModel = require("../models");
+const commentModel = require("../models/CommentModel");
+const reactionModel = require("../models/ReactionModel");
 
 const PORT = process.env.PORT || 3001;
 const axios = require("axios");
@@ -28,18 +29,63 @@ app.use(express.urlencoded({ extended: false }));
 // Have Node serve the files for our built React app
 app.use(express.static(path.resolve(__dirname, "../client/build")));
 
-// POST add a new user to the database
-app.post("/add_comment", async (request, response) => {
-  console.log(request.body);
+// POST add a new reaction to the database
+app.post("/add_reaction", async (request, response) => {
 
   const string_id = request.body.id.toString();
 
   try {
-    db.collection('comments').updateOne(
+    db.collection("reactions").updateOne(
       { id: string_id },
       {
         $set: {
-          id: string_id ,
+          id: string_id,
+          reactions: request.body.reactions,
+        },
+      },
+      { upsert: true }
+    );
+    response.status(200).send("success");
+    console.log("success!");
+    // await model.save();
+    // response.send(model);
+  } catch (error) {
+    console.log(error);
+    response.status(500).send(error);
+  }
+});
+
+// GET a service request's reactions
+app.get("/reactions", async (request, response) => {
+
+  console.log("in GET ", request.query)
+
+  callback_reactions = (c) => {
+    console.log("here ", c);
+    return response.send(c);
+  };
+
+  reactionModel.findOne({ id: request.query.id }).exec((err, res) => {
+    if (err) {
+      return response.status(500).send(err);
+    } else {
+      return callback_reactions(res);
+      
+    }
+  });
+});
+
+// POST add a new comment to the database
+app.post("/add_comment", async (request, response) => {
+
+  const string_id = request.body.id.toString();
+
+  try {
+    db.collection("comments").updateOne(
+      { id: string_id },
+      {
+        $set: {
+          id: string_id,
           comments: request.body.comments,
         },
       },
@@ -57,15 +103,15 @@ app.post("/add_comment", async (request, response) => {
 
 // GET
 app.get("/comments", async (request, response) => {
-  callback = (c) => {
-    response.send(c);
+  callback_comments = (c) => {
+    return response.send(c);
   };
 
   commentModel.findOne({ id: request.query.id }).exec((err, res) => {
     if (err) {
-      response.status(500).send(err);
+      return response.status(500).send(err);
     } else {
-      callback(res);
+      return callback_comments(res);
     }
   });
 });

@@ -269,6 +269,7 @@ body {
 .react-modal-sheet-content {
   background-color: transparent !important;
   /* custom styles */
+  overflow: hidden !important
 }
 
 .backDrop {
@@ -307,7 +308,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: transparent !important;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 /* SETTINGS CONTAINER */
@@ -720,6 +721,12 @@ input::file-selector-button,
   flex-direction: column;
   row-gap: 1rem;
   margin-top: 1rem;
+  max-height: 60vh;
+  overflow: auto;
+}
+
+.comment-section::-webkit-scrollbar {
+  display: none;
 }
 
 .comment-row {
@@ -789,7 +796,7 @@ input::file-selector-button,
 .react-container {
   display: flex;
   flex-direction: row;
-  column-gap: 0.5rem;
+  column-gap: 1rem;
 }
 
 .emoji-container {
