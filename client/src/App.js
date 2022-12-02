@@ -671,7 +671,7 @@ function App() {
                   <FontAwesomeIcon icon={faChevronDown} color={"black"} />
                 </button>
                 <button className="backDrop-btn">
-                  <FontAwesomeIcon icon={faEllipsis} color={"black"} />
+                  <FontAwesomeIcon icon={faShareNodes} color={"black"} />
                 </button>
               </div>
               <p className="backDrop">

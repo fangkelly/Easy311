@@ -8,6 +8,10 @@ const PORT = process.env.PORT || 3001;
 const axios = require("axios");
 const app = express();
 
+const Twit = require("twit");
+const dotenv = require("dotenv");
+dotenv.config();
+
 mongoose.connect(
   `mongodb+srv://fangk:9V4kU5bXwCYHuz@easy311.oulkflp.mongodb.net/?retryWrites=true&w=majority`,
   {
@@ -170,6 +174,24 @@ app.get("/analysis_data", async (req, res, next) => {
     }
   }
 });
+
+
+// TWITTER
+
+// const T = new Twit({
+//   consumer_key: process.env.API_KEY,
+//   consumer_secret: process.env.API_SECRET,
+//   access_token: process.env.ACCESS_TOKEN,
+//   access_token_secret: process.env.ACCESS_TOKEN_SECRET,
+// });
+
+// const getAuth = () => {
+//   T.post(`https://api.twitter.com/oauth/request_token?oauth_callback="https%3A%2F%2Fwww.easy311.app%2F%0A"`)
+// }
+
+// getAuth();
+
+
 
 // All other GET requests not handled before will return our React app
 app.get("*", (req, res) => {
