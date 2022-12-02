@@ -1,17 +1,16 @@
 const path = require("path");
+const PORT = process.env.PORT || 3001;
+const axios = require("axios");
+const dotenv = require("dotenv");
+dotenv.config();
 const express = require("express");
 const mongoose = require("mongoose");
 const commentModel = require("../models/CommentModel");
 const reactionModel = require("../models/ReactionModel");
-
-const PORT = process.env.PORT || 3001;
-const axios = require("axios");
+const Twit = require("twit");
 const app = express();
 
-const Twit = require("twit");
-const dotenv = require("dotenv");
-dotenv.config();
-
+// Database connection
 mongoose.connect(
   `mongodb+srv://fangk:9V4kU5bXwCYHuz@easy311.oulkflp.mongodb.net/?retryWrites=true&w=majority`,
   {
@@ -33,9 +32,56 @@ app.use(express.urlencoded({ extended: false }));
 // Have Node serve the files for our built React app
 app.use(express.static(path.resolve(__dirname, "../client/build")));
 
+// Google Sheets API
+const { google } = require("googleapis");
+const sheets = google.sheets("v4");
+const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
+const spreadsheetId = "1BQB3HWjFXnxcbvG0uzv72dLMk3CkI7whFJoufnUa_Y0";
+const sheetName = "Easy 311";
+
+async function getAuthToken() {
+  const auth = new google.auth.GoogleAuth({
+    scopes: SCOPES,
+  });
+  const authToken = await auth.getClient();
+  return authToken;
+}
+
+async function writeSpreadSheetValues({ spreadsheetId, auth, sheetName }, vals) {
+  const res = await sheets.spreadsheets.values.append({
+    auth,
+    spreadsheetId,
+    range: "Easy 311!A1:G",
+    valueInputOption: "USER_ENTERED",
+    resource: {
+      values: [[vals.name, vals.category, "media", vals.address, vals.description, vals.email, vals.phone]],
+    },
+  });
+
+  return res;
+}
+
+app.post("/write_sheets", async (request, response) => {
+  console.log("IN HERE");
+  console.log(request.body);
+  try {
+    const auth = await getAuthToken();
+    const response = await writeSpreadSheetValues({
+      spreadsheetId,
+      sheetName,
+      auth,
+    }, request.body);
+    console.log(
+      "output for getSpreadSheetValues",
+      JSON.stringify(response.data, null, 2)
+    );
+  } catch (error) {
+    console.log(error.message, error.stack);
+  }
+});
+
 // POST add a new reaction to the database
 app.post("/add_reaction", async (request, response) => {
-
   const string_id = request.body.id.toString();
 
   try {
@@ -61,8 +107,7 @@ app.post("/add_reaction", async (request, response) => {
 
 // GET a service request's reactions
 app.get("/reactions", async (request, response) => {
-
-  console.log("in GET ", request.query)
+  console.log("in GET ", request.query);
 
   callback_reactions = (c) => {
     console.log("here ", c);
@@ -74,14 +119,12 @@ app.get("/reactions", async (request, response) => {
       return response.status(500).send(err);
     } else {
       return callback_reactions(res);
-      
     }
   });
 });
 
 // POST add a new comment to the database
 app.post("/add_comment", async (request, response) => {
-
   const string_id = request.body.id.toString();
 
   try {
@@ -175,7 +218,6 @@ app.get("/analysis_data", async (req, res, next) => {
   }
 });
 
-
 // TWITTER
 
 // const T = new Twit({
@@ -190,8 +232,6 @@ app.get("/analysis_data", async (req, res, next) => {
 // }
 
 // getAuth();
-
-
 
 // All other GET requests not handled before will return our React app
 app.get("*", (req, res) => {

@@ -107,18 +107,6 @@ export default function ChatBot({ setToggleForm }) {
     document.body.appendChild(script);
   }, []);
 
-
-  // useEffect(() => {
-  //   const script = document.createElement("script");
-  //   script.src =
-  //     "https://apis.google.com/js/client.js";
-  //   script.async = true;
-  //   //script.onload = () => this.scriptLoaded();
-  //   document.body.appendChild(script);
-  // }, []);
-
-  
-
   const options = {
     maxSizeMB: 1,
     maxWidthOrHeight: 1920,
@@ -264,22 +252,9 @@ export default function ChatBot({ setToggleForm }) {
       { sender: "user", message: message },
     ]);
     const msg = message;
-    // messageParser(msg);
     setSendResponse(true);
   };
 
-  // useEffect(()=>{
-  //   window.gapi.load('client:auth2', initClient)
-  // }, [])
-
-  const initClient = () => {
-    window.gapi.client.init({
-      'apiKey': API_KEY,
-      'clientId':CLIENT_ID,
-      'scope': SCOPE,
-      'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4']
-    })
-  }
 
   useEffect(() => {
     if (sendResponse) {
@@ -296,7 +271,7 @@ export default function ChatBot({ setToggleForm }) {
 
   const handleKeyUp = async (e) => {
     const code = e.keyCode;
-    if (code === 13) {
+    if (code === 13 && message) {
       submitMessage();
     }
   };
@@ -305,26 +280,6 @@ export default function ChatBot({ setToggleForm }) {
     submitMessage();
   };
 
-  // const handleSubmit = () => {
-  //   const params = {
-  //     spreadsheetId: SPREADSHEET_ID,
-  //     range:"Sheet1",
-  //     valueInputOption:"Raw",
-  //     insertDataOption:"INSERT_ROWS"
-  //   };
-
-  //   const valueRangeBody = {
-  //     'majorDimension':'ROWS',
-  //     'values': [response.name, response.category, response.media, response.location, response.description, response.email, response.number]
-  //   };
-
-  //   let request = window.gapi.client.sheets.spreadsheets.values.append(params, valueRangeBody);
-  //   request.then(function(response) {
-  //     console.log(response.result);
-  //   }, function (reason) {
-  //     console.error('error: ' + reason.result.error.message)
-  //   })
-  // }
 
   const getWidget = (widgetType) => {
     console.log(widgetType);
@@ -354,8 +309,40 @@ export default function ChatBot({ setToggleForm }) {
     }
   };
 
-  const messageParser = (msg) => {
+  const handleSubmit = (data) => {
 
+    fetch("/write_sheets", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          console.log("error");
+          sendResponse({
+            category: null,
+            description: null,
+            media: null,
+            subscribe: false,
+            email: null,
+            address: null,
+            name: null,
+            phone: null
+          });
+        } else {
+          console.log("successfully wrote to sheets");
+        }
+      })
+      .catch((err) => {
+        console.log("error");
+      });
+
+  }
+
+  const messageParser = (msg) => {
 
     if (currentStep === -1) {
       setMessageHistory([
@@ -525,13 +512,13 @@ export default function ChatBot({ setToggleForm }) {
         ]);
         setCurrentStep(-1);
         setSendResponse(true);
-        // handleSubmit();
+        handleSubmit(response);
       }
     } else if (currentStep === 7) {
       const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       let email = msg;
       if (re.test(email)) {
-        setEmail(email);
+        // setEmail(email);
         setMessageHistory([
           ...messageHistory,
           {
@@ -550,7 +537,7 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
         setCurrentStep(-1);
-        // handleSubmit();
+        handleSubmit({...response, email:email});
       } else {
         setMessageHistory([
           ...messageHistory,
@@ -564,7 +551,7 @@ export default function ChatBot({ setToggleForm }) {
       const re = /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
       let number = msg;
       if (re.test(number)) {
-        setPhone(number);
+        // setPhone(number);
         setMessageHistory([
           ...messageHistory,
           {
@@ -582,7 +569,7 @@ export default function ChatBot({ setToggleForm }) {
             `,
           },
         ]);
-        // handleSubmit();
+        handleSubmit({...response, phone:number});
       } else {
         setMessageHistory([
           ...messageHistory,
