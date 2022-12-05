@@ -825,7 +825,6 @@ input::file-selector-button,
 .splash-logo {
   height: 25vh;
   width: 25vh;
-  margin: auto;
 }
 
 .splash-buttons {
@@ -833,8 +832,7 @@ input::file-selector-button,
   flex-direction: column;
   align-items: center;
   row-gap: 2rem;
-  margin: auto;
-  
+  justify-content: flex-start;  
 }
 
 .splash-heading {
@@ -843,8 +841,11 @@ input::file-selector-button,
 }
 
 .splash-logo-container {
-  margin: auto; display: flex;
-  flex-direction: column; align-items: center;
+  display: flex;
+  justify-content: center;
+  flex-direction: column; 
+  align-items: center;
+  height: 60vh;
 }
 
 #splash-bot, #splash-viz {
