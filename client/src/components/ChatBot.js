@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState } from "react";
 import DropDown from "./DropDown";
 import Form from "react-bootstrap/Form";
@@ -9,13 +7,11 @@ import LoadingWheel from "./LoadingWheel";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 
-
-const SPREADSHEET_ID = '1BQB3HWjFXnxcbvG0uzv72dLMk3CkI7whFJoufnUa_Y0';
-const CLIENT_ID = '674249811099-cb72cfg2k8aklpbkths41mknhurmepv4.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyBFN1wVr58SqaQdz3Rx0me_BXZBb7mkg1w';
-const SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-
-
+const SPREADSHEET_ID = "1BQB3HWjFXnxcbvG0uzv72dLMk3CkI7whFJoufnUa_Y0";
+const CLIENT_ID =
+  "674249811099-cb72cfg2k8aklpbkths41mknhurmepv4.apps.googleusercontent.com";
+const API_KEY = "AIzaSyBFN1wVr58SqaQdz3Rx0me_BXZBb7mkg1w";
+const SCOPE = "https://www.googleapis.com/auth/spreadsheets";
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
@@ -42,7 +38,7 @@ export default function ChatBot({ setToggleForm }) {
     email: null,
     address: null,
     name: null,
-    phone: null
+    phone: null,
   });
 
   const [geo, setGeo] = useState({});
@@ -50,7 +46,6 @@ export default function ChatBot({ setToggleForm }) {
   useEffect(() => {
     console.log(response);
   }, [response]);
-
 
   const setCategory = (newCategory) => {
     const categoryMap = {
@@ -63,8 +58,8 @@ export default function ChatBot({ setToggleForm }) {
       7: "Street Light Outage",
       8: "Property Maintenance",
       9: "Street Trees",
-      10: "Other"
-    }
+      10: "Other",
+    };
     setResponse({ ...response, category: categoryMap[newCategory] });
   };
 
@@ -243,7 +238,6 @@ export default function ChatBot({ setToggleForm }) {
     },
   ]);
   const [currentStep, setCurrentStep] = useState(0);
-
   const [sendResponse, setSendResponse] = useState(false);
 
   const submitMessage = () => {
@@ -254,7 +248,6 @@ export default function ChatBot({ setToggleForm }) {
     const msg = message;
     setSendResponse(true);
   };
-
 
   useEffect(() => {
     if (sendResponse) {
@@ -279,7 +272,6 @@ export default function ChatBot({ setToggleForm }) {
   const handleClick = (e) => {
     submitMessage();
   };
-
 
   const getWidget = (widgetType) => {
     console.log(widgetType);
@@ -310,7 +302,6 @@ export default function ChatBot({ setToggleForm }) {
   };
 
   const handleSubmit = (data) => {
-
     fetch("/write_sheets", {
       method: "POST",
       headers: {
@@ -330,7 +321,7 @@ export default function ChatBot({ setToggleForm }) {
             email: null,
             address: null,
             name: null,
-            phone: null
+            phone: null,
           });
         } else {
           console.log("successfully wrote to sheets");
@@ -339,11 +330,9 @@ export default function ChatBot({ setToggleForm }) {
       .catch((err) => {
         console.log("error");
       });
-
-  }
+  };
 
   const messageParser = (msg) => {
-
     if (currentStep === -1) {
       setMessageHistory([
         ...messageHistory,
@@ -353,9 +342,7 @@ export default function ChatBot({ setToggleForm }) {
         },
       ]);
       setCurrentStep(0);
-    }
-    
-    else if (currentStep === 0) {
+    } else if (currentStep === 0) {
       setName(msg);
       setMessageHistory([
         ...messageHistory,
@@ -537,7 +524,7 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
         setCurrentStep(-1);
-        handleSubmit({...response, email:email});
+        handleSubmit({ ...response, email: email });
       } else {
         setMessageHistory([
           ...messageHistory,
@@ -569,7 +556,7 @@ export default function ChatBot({ setToggleForm }) {
             `,
           },
         ]);
-        handleSubmit({...response, phone:number});
+        handleSubmit({ ...response, phone: number });
       } else {
         setMessageHistory([
           ...messageHistory,
@@ -589,11 +576,13 @@ export default function ChatBot({ setToggleForm }) {
           heading={geo.geoLocateTitle}
           loader={geo.geoLocateLoader}
           text={geo.geoLocateDialog}
-          closeFunction={()=>{setGeo({
-            geoLocateTitle: null,
-            geoLocateDialog: null,
-            geoLocateLoader: false,
-          });}}
+          closeFunction={() => {
+            setGeo({
+              geoLocateTitle: null,
+              geoLocateDialog: null,
+              geoLocateLoader: false,
+            });
+          }}
         />
       )}
 
@@ -625,115 +614,6 @@ export default function ChatBot({ setToggleForm }) {
           <FontAwesomeIcon icon={faPaperPlane} />
         </button>
       </div>
-
-      {/* <div className={"data-section"}>
-          <p className={"data-title"}>What is your name?</p>
-          <input
-              placeholder="Type in your name"
-              type="text"
-              id="name"
-              onChange={(e) => {
-                setName(e.target.value);
-              }}
-            />
-        </div>
-
-        <div className={"data-section"}>
-          <p className={"data-title"}>What would you like to report today?</p>
-          <DropDown
-            val={response.category}
-            setVal={setCategory}
-            items={CATEGORY_OPTIONS}
-            placeholder={"Select a category"}
-          />
-        </div>
-        <div className={"data-section"}>
-          <p className={"data-title"}>
-            Please upload one or more images of the issue.
-          </p>
-
-          <input
-            type="file"
-            id="files"
-            multiple
-            accept="image/*"
-            onChange={(e) => {
-              handleUploadImage(e);
-            }}
-          />
-
-          {response.media && response.media.length > 0 && (
-            <SlideShow items={response.media} />
-          )}
-        </div>
-        <div className={"data-section"}>
-          <p className={"data-title"}>Where is this issue located?</p>
-          <div>
-            <input
-              placeholder="Type in an address"
-              type="text"
-              id="address"
-              onChange={(e) => {
-                setAddress(e.target.value);
-              }}
-            />
-            <div
-              className={"d-flex flex-row"}
-              style={{ justifyContent: "flex-end" }}
-            >
-              <button id={"geolocate-btn"} onClick={geolocate}>
-                Use my location
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className={"data-section"}>
-          <p className={"data-title"}>Please describe the issue.</p>
-          <input
-            placeholder="Description of issue"
-            type="text"
-            onChange={(e) => {
-              setDescription(e.target.value);
-            }}
-          />
-        </div>
-        <div className={"data-section"}>
-          <p className={"data-title"}>
-            If you'd like to receive updates on your issue status, please reply
-            with your email.
-          </p>
-          <input
-            placeholder="Email address"
-            type="email"
-            onChange={(e) => {
-              setEmail(e.target.value);
-            }}
-          />
-        </div>
-        <div className={"data-section"}>
-          <p className={"data-title"}>
-            We'd love to work with residents on bettering Philly. Would you like
-            to get connected with our partner non-profits?{" "}
-          </p>
-          <Form className="filter-items">
-            <Form.Check
-              onChange={(e) => {
-                setSubscribe(e.target.checked);
-              }}
-              key={"subscribe"}
-              label={"Yes, connect me with partner non-profits"}
-              name={"subscribe"}
-              type={"checkbox"}
-              id={`subscribe-checkbox`}
-              checked={response.subscribe}
-              className={response.subscribe ? "active-label" : "inactive-label"}
-            />
-          </Form>
-        </div>
-
-        <div className={"data-section"} style={{ alignItems: "center" }}>
-          <button id={"submitForm-btn"}>Submit</button>
-        </div>  */}
     </div>
   );
 }

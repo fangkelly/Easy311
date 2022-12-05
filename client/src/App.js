@@ -370,11 +370,17 @@ function App() {
 
   const [comment, setComment] = useState("");
 
+  useEffect(()=>{
+    console.log("comments, ", comments);
+
+  }, [comments]);
+
   const handleKeyUp = async (e) => {
     const code = e.keyCode;
     if (code === 13 && comment) {
       let newComments;
-      const currentTime = new Date();
+      let currentTime = new Date();
+      currentTime = currentTime.toString();
       const newComment = { text: comment, time: currentTime };
       if (comments) {
         newComments = comments.comments;
@@ -511,7 +517,7 @@ function App() {
                 {!commentSection ? (
                   <>
                     <p className="backDrop-sub bold">Updates</p>
-                    <VerticalTimeline lineColor={"#AAAAAA"}>
+                    <VerticalTimeline lineColor={"#AAAAAA"} layout={"1-column-left"}>
                       {[
                         "requested_datetime",
                         "updated_datetime",
@@ -569,7 +575,7 @@ function App() {
                           <div className="comment-row">
                             <div className="comment">{comment.text}</div>
                             <div className="comment-time">
-                              {convertDate(comment.time)}
+                              {comment.time}
                             </div>
                           </div>
                         );
