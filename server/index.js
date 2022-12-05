@@ -137,7 +137,6 @@ async function uploadToFolder(auth, folderId, fileProps) {
 
 app.post("/upload_media", async (request, response) => {
   const medias = request.body.media;
-  console.log("BODY ", request.body);
   if (medias) {
     try {
       const auth = await getAuthToken();

@@ -149,6 +149,7 @@ function App() {
   const [neighborhood, setNeighborhood] = useState(null);
   const [stats, setStats] = useState(null);
   const [toggleForm, setToggleForm] = useState(false);
+  const [toggleSplash, setToggleSplash] = useState(true);
 
   let emptySet = new Set();
 
@@ -242,7 +243,6 @@ function App() {
   }, [analysisData]);
 
   const data = useMemo(() => {
-    console.log("ANALYSIS DATA ", analysisData);
     if (analysisData) {
       return analysisData.filter(
         (d) =>
@@ -296,13 +296,6 @@ function App() {
         const poly = polygon(neighborhood.geometry.coordinates[0]);
         const neighborhood_trend = trendData.filter((d) =>
           booleanPointInPolygon(point(d.geometry.coordinates), poly)
-        );
-        console.log(
-          "TREND ",
-          (
-            ((total - neighborhood_trend.length) * 100) /
-            neighborhood_trend.length
-          ).toFixed(2)
         );
 
         setStats((stats) => {
@@ -370,11 +363,6 @@ function App() {
 
   const [comment, setComment] = useState("");
 
-  useEffect(()=>{
-    console.log("comments, ", comments);
-
-  }, [comments]);
-
   const handleKeyUp = async (e) => {
     const code = e.keyCode;
     if (code === 13 && comment) {
@@ -419,18 +407,16 @@ function App() {
   };
 
   const addReaction = (r) => {
-
     console.log("triggered addReaction");
-
 
     const data = {
       id: pointData.properties.service_request_id,
       reactions: {
-        r1:reaction?reaction?.reactions?.r1:0,
-        r2:reaction?reaction?.reactions?.r2:0,
-        r3:reaction?reaction?.reactions?.r3:0,
-        r4:reaction?reaction?.reactions?.r4:0,
-        r5:reaction?reaction?.reactions?.r5:0,
+        r1: reaction ? reaction?.reactions?.r1 : 0,
+        r2: reaction ? reaction?.reactions?.r2 : 0,
+        r3: reaction ? reaction?.reactions?.r3 : 0,
+        r4: reaction ? reaction?.reactions?.r4 : 0,
+        r5: reaction ? reaction?.reactions?.r5 : 0,
         // r6:reaction?reaction?.reactions?.r6:0
       },
     };
@@ -458,7 +444,7 @@ function App() {
       .catch((err) => {
         console.log("error");
       });
-  }
+  };
 
   return (
     <div className="App">
@@ -480,6 +466,32 @@ function App() {
         </div>
       </header>
       <div id={"map-container"}>
+        {toggleSplash && (
+          <div id="splash-page">
+            <div className="splash-logo-container">
+              <img src={logo} className={"splash-logo"} />
+              <p className="splash-heading">EASY 311</p>
+            </div>
+            <div className={"splash-buttons"}>
+              <button
+                id="splash-viz"
+                onClick={() => {
+                  setToggleSplash(false);
+                  setToggleForm(true);
+                }}
+              >
+                Submit a Request
+              </button>
+              <button id="splash-bot" onClick={() => {
+                setToggleSplash(false)
+                setDataView(true)
+                }}>
+                {" "}
+                Data Visualization
+              </button>
+            </div>
+          </div>
+        )}
         <Map
           data={data}
           setDataView={setDataView}
@@ -517,7 +529,10 @@ function App() {
                 {!commentSection ? (
                   <>
                     <p className="backDrop-sub bold">Updates</p>
-                    <VerticalTimeline lineColor={"#AAAAAA"} layout={"1-column-left"}>
+                    <VerticalTimeline
+                      lineColor={"#AAAAAA"}
+                      layout={"1-column-left"}
+                    >
                       {[
                         "requested_datetime",
                         "updated_datetime",
@@ -574,9 +589,7 @@ function App() {
                         return (
                           <div className="comment-row">
                             <div className="comment">{comment.text}</div>
-                            <div className="comment-time">
-                              {comment.time}
-                            </div>
+                            <div className="comment-time">{comment.time}</div>
                           </div>
                         );
                       })}
@@ -623,24 +636,62 @@ function App() {
                   <FontAwesomeIcon icon={faShareNodes} />
                 </div> */}
 
-                <div className="react-container" style={{maxWidth:commentSection?"0":"", opacity:commentSection?0:1, padding:commentSection?0:"0.25rem 0.75rem", transition:"all 0.4s"}}>
-                  <div className="emoji-container" onClick={()=>{addReaction("r1")}} style={{width:commentSection?"0":""}}>
+                <div
+                  className="react-container"
+                  style={{
+                    maxWidth: commentSection ? "0" : "",
+                    opacity: commentSection ? 0 : 1,
+                    padding: commentSection ? 0 : "0.25rem 0.75rem",
+                    transition: "all 0.4s",
+                  }}
+                >
+                  <div
+                    className="emoji-container"
+                    onClick={() => {
+                      addReaction("r1");
+                    }}
+                    style={{ width: commentSection ? "0" : "" }}
+                  >
                     <img src={emoji_1} />
                     <p>{reaction ? reaction?.reactions?.r1 : 0}</p>
                   </div>
-                  <div className="emoji-container" onClick={()=>{addReaction("r2")}} style={{width:commentSection?"0":""}}>
+                  <div
+                    className="emoji-container"
+                    onClick={() => {
+                      addReaction("r2");
+                    }}
+                    style={{ width: commentSection ? "0" : "" }}
+                  >
                     <img src={emoji_2} />{" "}
                     <p>{reaction ? reaction?.reactions?.r2 : 0}</p>
                   </div>
-                  <div className="emoji-container" onClick={()=>{addReaction("r3")}} style={{width:commentSection?"0":""}}>
+                  <div
+                    className="emoji-container"
+                    onClick={() => {
+                      addReaction("r3");
+                    }}
+                    style={{ width: commentSection ? "0" : "" }}
+                  >
                     <img src={emoji_3} />{" "}
                     <p>{reaction ? reaction?.reactions?.r3 : 0}</p>
                   </div>
-                  <div className="emoji-container" onClick={()=>{addReaction("r4")}} style={{width:commentSection?"0":""}}>
+                  <div
+                    className="emoji-container"
+                    onClick={() => {
+                      addReaction("r4");
+                    }}
+                    style={{ width: commentSection ? "0" : "" }}
+                  >
                     <img src={emoji_4} />{" "}
                     <p>{reaction ? reaction?.reactions?.r4 : 0}</p>
                   </div>
-                  <div className="emoji-container" onClick={()=>{addReaction("r5")}} style={{width:commentSection?"0":""}}>
+                  <div
+                    className="emoji-container"
+                    onClick={() => {
+                      addReaction("r5");
+                    }}
+                    style={{ width: commentSection ? "0" : "" }}
+                  >
                     <img src={emoji_5} />{" "}
                     <p>{reaction ? reaction?.reactions?.r5 : 0}</p>
                   </div>
@@ -712,7 +763,7 @@ function App() {
             setToggleForm(true);
           }}
         >
-          <FontAwesomeIcon icon={faPlus}></FontAwesomeIcon>
+          Submit a service request
         </button>
 
         {toggleForm && <SubmissionForm setToggleForm={setToggleForm} />}

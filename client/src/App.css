@@ -456,17 +456,19 @@ input[type="search"]::-webkit-search-cancel-button {
 #toggleForm-btn {
   z-index: 1;
   position: absolute;
-  bottom: 2vh;
+  bottom: 4vh;
   right: 2vh;
-  height: 5vh;
-  width: 5vh;
-  border-radius: 50%;
+  border-radius: 20px;
   border: none;
   color: black;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
+  padding: 8px;
+  background-color: var(--blue);
+  color: white;
+  font-size: 12px;
 }
 
 #closeForm-btn {
@@ -598,7 +600,7 @@ input::file-selector-button,
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 3;
+  z-index: 100;
   background-color: var(--card-black);
   row-gap: 1rem;
   top: 50%;
@@ -807,6 +809,62 @@ input::file-selector-button,
 
 .share-btn {
 }
+
+/* SPLASH PAGE */
+#splash-page {
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--light-black);
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.splash-logo {
+  height: 25vh;
+  width: 25vh;
+  margin: auto;
+}
+
+.splash-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  row-gap: 2rem;
+  margin: auto;
+  
+}
+
+.splash-heading {
+  font-size: 36px;
+  color: white;
+}
+
+.splash-logo-container {
+  margin: auto; display: flex;
+  flex-direction: column; align-items: center;
+}
+
+#splash-bot, #splash-viz {
+  border-radius: 15px;
+  padding: 1rem 2rem;
+  color: white;
+  width: fit-content;
+  border: none;
+  font-size: 16px;
+}
+
+#splash-bot {
+  background-color: rgb(255,255,255, .15);
+
+}
+
+#splash-viz {
+  background-color: var(--blue);
+}
+
 
 /* UTIl */
 
