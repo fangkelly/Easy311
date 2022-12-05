@@ -114,6 +114,7 @@ export default function ChatBot({ setToggleForm }) {
     let newUpload = [];
 
     const updateUpload = (upload, update = false) => {
+      console.log("buffer? ", typeof upload[0]);
       if (upload) newUpload.push(upload);
       if (update) handleUpdateImage(newUpload);
     };
@@ -128,6 +129,7 @@ export default function ChatBot({ setToggleForm }) {
         const file = files[i];
         imageCompression(file, options).then((compressedFile) => {
           let ext = file.name.toLowerCase().split(".").pop();
+          ext.toLowerCase();
           if (ext === "jpg") ext = "jpeg";
           //   if (ext === "heic" || ext === "heif") {
           //     console.log("heic detected");
@@ -258,6 +260,10 @@ export default function ChatBot({ setToggleForm }) {
   }, [sendResponse]);
 
   useEffect(() => {
+    console.log("respomse ", response);
+  }, [response]);
+
+  useEffect(() => {
     const chatbot = document.getElementsByClassName("messages")[0];
     chatbot.scrollTop = chatbot.scrollHeight;
   }, [messageHistory]);
@@ -302,29 +308,56 @@ export default function ChatBot({ setToggleForm }) {
   };
 
   const handleSubmit = (data) => {
-    fetch("/write_sheets", {
+    const media_data = {
+      media: response.media,
+    };
+
+    fetch("/upload_media", {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(media_data),
     })
       .then((res) => {
         if (!res.ok) {
           console.log("error");
-          sendResponse({
-            category: null,
-            description: null,
-            media: null,
-            subscribe: false,
-            email: null,
-            address: null,
-            name: null,
-            phone: null,
-          });
         } else {
-          console.log("successfully wrote to sheets");
+          console.log("RES ", res);
+          res.json().then((d) => {
+            fetch("/write_sheets", {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                ...data,
+                media: `https://drive.google.com/drive/folders/${d.folderId}`,
+              }),
+            })
+              .then((res) => {
+                if (!res.ok) {
+                  console.log("error");
+                } else {
+                  sendResponse({
+                    category: null,
+                    description: null,
+                    media: null,
+                    subscribe: false,
+                    email: null,
+                    address: null,
+                    name: null,
+                    phone: null,
+                  });
+                  console.log("successfully wrote to sheets");
+                }
+              })
+              .catch((err) => {
+                console.log("error");
+              });
+          });
         }
       })
       .catch((err) => {

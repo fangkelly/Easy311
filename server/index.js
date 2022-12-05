@@ -1,7 +1,13 @@
 const path = require("path");
+const fs = require("fs");
+const { Readable } = require("stream");
+const bodyParser = require("body-parser");
+
 const PORT = process.env.PORT || 3001;
 const axios = require("axios");
 const dotenv = require("dotenv");
+const stream = require("stream");
+
 dotenv.config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -26,6 +32,8 @@ db.once("open", function () {
 });
 
 //MiddleWare
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -35,7 +43,10 @@ app.use(express.static(path.resolve(__dirname, "../client/build")));
 // Google Sheets API
 const { google } = require("googleapis");
 const sheets = google.sheets("v4");
-const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
+const SCOPES = [
+  "https://www.googleapis.com/auth/spreadsheets",
+  "https://www.googleapis.com/auth/drive",
+];
 const spreadsheetId = "1BQB3HWjFXnxcbvG0uzv72dLMk3CkI7whFJoufnUa_Y0";
 const sheetName = "Easy 311";
 
@@ -47,30 +58,116 @@ async function getAuthToken() {
   return authToken;
 }
 
-async function writeSpreadSheetValues({ spreadsheetId, auth, sheetName }, vals) {
+async function writeSpreadSheetValues(
+  { spreadsheetId, auth, sheetName },
+  vals
+) {
   const res = await sheets.spreadsheets.values.append({
     auth,
     spreadsheetId,
     range: "Easy 311!A1:G",
     valueInputOption: "USER_ENTERED",
     resource: {
-      values: [[vals.name, vals.category, "media", vals.address, vals.description, vals.email, vals.phone]],
+      values: [
+        [
+          vals.name,
+          vals.category,
+          vals.media,
+          vals.address,
+          vals.description,
+          vals.email,
+          vals.phone,
+        ],
+      ],
     },
   });
 
   return res;
 }
 
+async function createFolder(auth, folderName) {
+  const service = google.drive({ version: "v3", auth });
+  const fileMetadata = {
+    name: folderName,
+    parents: ["1Ivtb7Ja_TyeM6pSAXJHrK8xJQw56H6ik"],
+    mimeType: "application/vnd.google-apps.folder",
+  };
+  try {
+    const file = await service.files.create({
+      resource: fileMetadata,
+      fields: "id",
+    });
+    console.log("Folder Id:", file.data.id);
+    return file.data.id;
+  } catch (err) {
+    // TODO(developer) - Handle error
+    throw err;
+  }
+}
+
+async function uploadToFolder(auth, folderId, fileProps) {
+  const service = google.drive({ version: "v3", auth });
+
+  const fileMetadata = {
+    name: `${fileProps.name}.${fileProps.extension}`,
+    parents: [folderId],
+  };
+  const media = {
+    mimeType: `image/${fileProps.extension}`,
+    body: fileProps.buffer,
+  };
+  try {
+    const file = await service.files.create({
+      resource: fileMetadata,
+      media: media,
+      fields: "id",
+      uploadType: "multipart",
+    });
+    console.log("File Id:", file.data.id);
+    return file.data.id;
+  } catch (err) {
+    // TODO(developer) - Handle error
+    throw err;
+  }
+}
+
+app.post("/upload_media", async (request, response) => {
+  const medias = request.body.media;
+  if (medias) {
+    try {
+      const auth = await getAuthToken();
+      const folder = await createFolder(auth, "name");
+
+      for (let i = 0; i < medias.length; i++) {
+        const fileProps = {
+          name: i,
+          extension: medias[i][1],
+          buffer: medias[i][0],
+        };
+        const id = await uploadToFolder(auth, folder, fileProps);
+      }
+      console.log("FOLDER ID ", folder);
+
+      response.send({ folderId: folder });
+    } catch (error) {
+      console.log(error.message, error.stack);
+    }
+  } else {
+    response.send({ folderId: null });
+  }
+});
+
 app.post("/write_sheets", async (request, response) => {
-  console.log("IN HERE");
-  console.log(request.body);
   try {
     const auth = await getAuthToken();
-    const response = await writeSpreadSheetValues({
-      spreadsheetId,
-      sheetName,
-      auth,
-    }, request.body);
+    const response = await writeSpreadSheetValues(
+      {
+        spreadsheetId,
+        sheetName,
+        auth,
+      },
+      request.body
+    );
     console.log(
       "output for getSpreadSheetValues",
       JSON.stringify(response.data, null, 2)
