@@ -39,13 +39,11 @@ export default function ChatBot({ setToggleForm }) {
     address: null,
     name: null,
     phone: null,
+    date: null,
   });
 
   const [geo, setGeo] = useState({});
 
-  useEffect(() => {
-    console.log(response);
-  }, [response]);
 
   const setCategory = (newCategory) => {
     const categoryMap = {
@@ -110,11 +108,9 @@ export default function ChatBot({ setToggleForm }) {
 
   const handleUploadImage = (e) => {
     setSendResponse(true);
-    console.log("triggered");
     let newUpload = [];
 
     const updateUpload = (upload, update = false) => {
-      console.log("buffer? ", typeof upload[0]);
       if (upload) newUpload.push(upload);
       if (update) handleUpdateImage(newUpload);
     };
@@ -172,7 +168,6 @@ export default function ChatBot({ setToggleForm }) {
   /* GEOLOCATION */
 
   const geolocate = () => {
-    console.log("geolocate");
     const success = (position) => {
       fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${position.coords.longitude},${position.coords.latitude}.json?access_token=${MAPBOX_ACCESS_TOKEN}`
@@ -259,9 +254,6 @@ export default function ChatBot({ setToggleForm }) {
     }
   }, [sendResponse]);
 
-  useEffect(() => {
-    console.log("respomse ", response);
-  }, [response]);
 
   useEffect(() => {
     const chatbot = document.getElementsByClassName("messages")[0];
@@ -280,7 +272,6 @@ export default function ChatBot({ setToggleForm }) {
   };
 
   const getWidget = (widgetType) => {
-    console.log(widgetType);
     if (widgetType === "media_upload") {
       return (
         <div>
@@ -293,7 +284,7 @@ export default function ChatBot({ setToggleForm }) {
               handleUploadImage(e);
             }}
           />
-          {response.media && response.media.length > 1 && (
+          {response.media && response.media.length >= 1 && (
             <SlideShow items={response.media} />
           )}
         </div>
@@ -308,23 +299,18 @@ export default function ChatBot({ setToggleForm }) {
   };
 
   const handleSubmit = (data) => {
-    const media_data = {
-      media: response.media,
-    };
-
     fetch("/upload_media", {
       method: "POST",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(media_data),
+      body: JSON.stringify(response),
     })
       .then((res) => {
         if (!res.ok) {
           console.log("error");
         } else {
-          console.log("RES ", res);
           res.json().then((d) => {
             fetch("/write_sheets", {
               method: "POST",
@@ -338,19 +324,20 @@ export default function ChatBot({ setToggleForm }) {
               }),
             })
               .then((res) => {
+                setResponse({
+                  category: null,
+                  description: null,
+                  media: null,
+                  subscribe: false,
+                  email: null,
+                  address: null,
+                  name: null,
+                  phone: null,
+                  date: null,
+                });
                 if (!res.ok) {
                   console.log("error");
                 } else {
-                  sendResponse({
-                    category: null,
-                    description: null,
-                    media: null,
-                    subscribe: false,
-                    email: null,
-                    address: null,
-                    name: null,
-                    phone: null,
-                  });
                   console.log("successfully wrote to sheets");
                 }
               })
@@ -513,11 +500,13 @@ export default function ChatBot({ setToggleForm }) {
         setCurrentStep(8);
         setSendResponse(false);
       } else {
+        let date = new Date();
+        date = date.toString();
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
-            message: `Thank you for submitting via EASY 311. Here is what we have from you: \n
+            message: `Thank you for submitting via EASY 311. Here is what we have from you: 
             Name: ${response.name}
             Category: ${response.category}
             Location: ${response.address}
@@ -532,7 +521,8 @@ export default function ChatBot({ setToggleForm }) {
         ]);
         setCurrentStep(-1);
         setSendResponse(true);
-        handleSubmit(response);
+        console.log("DATE ", date);
+        handleSubmit({ ...response, date: date });
       }
     } else if (currentStep === 7) {
       const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -557,7 +547,9 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
         setCurrentStep(-1);
-        handleSubmit({ ...response, email: email });
+        let date = new Date();
+        date = date.toString();
+        handleSubmit({ ...response, email: email, date: date });
       } else {
         setMessageHistory([
           ...messageHistory,
@@ -570,6 +562,8 @@ export default function ChatBot({ setToggleForm }) {
     } else if (currentStep === 8) {
       const re = /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
       let number = msg;
+      let date = new Date();
+      date = date.toString();
       if (re.test(number)) {
         // setPhone(number);
         setMessageHistory([
@@ -589,7 +583,7 @@ export default function ChatBot({ setToggleForm }) {
             `,
           },
         ]);
-        handleSubmit({ ...response, phone: number });
+        handleSubmit({ ...response, phone: number, date: date });
       } else {
         setMessageHistory([
           ...messageHistory,

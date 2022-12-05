@@ -1,6 +1,6 @@
 const path = require("path");
 const fs = require("fs");
-const { Readable } = require("stream");
+const {PassThrough} = require("stream");
 const bodyParser = require("body-parser");
 
 const PORT = process.env.PORT || 3001;
@@ -70,6 +70,7 @@ async function writeSpreadSheetValues(
     resource: {
       values: [
         [
+          vals.date,
           vals.name,
           vals.category,
           vals.media,
@@ -112,9 +113,12 @@ async function uploadToFolder(auth, folderId, fileProps) {
     name: `${fileProps.name}.${fileProps.extension}`,
     parents: [folderId],
   };
+  let buffer = Buffer.from(fileProps.buffer.replace(/^data:.*;base64,/, ""), 'base64');
+  let bufStream = new PassThrough();
+  bufStream.end(buffer);
   const media = {
     mimeType: `image/${fileProps.extension}`,
-    body: fileProps.buffer,
+    body: bufStream,
   };
   try {
     const file = await service.files.create({
@@ -133,10 +137,11 @@ async function uploadToFolder(auth, folderId, fileProps) {
 
 app.post("/upload_media", async (request, response) => {
   const medias = request.body.media;
+  console.log("BODY ", request.body);
   if (medias) {
     try {
       const auth = await getAuthToken();
-      const folder = await createFolder(auth, "name");
+      const folder = await createFolder(auth, `${request.body.name}_${request.body.category}`);
 
       for (let i = 0; i < medias.length; i++) {
         const fileProps = {
@@ -146,8 +151,6 @@ app.post("/upload_media", async (request, response) => {
         };
         const id = await uploadToFolder(auth, folder, fileProps);
       }
-      console.log("FOLDER ID ", folder);
-
       response.send({ folderId: folder });
     } catch (error) {
       console.log(error.message, error.stack);

@@ -12,7 +12,7 @@ export default function SlideShow({ items }) {
             return (
               <Carousel.Item>
                  <img className={"slider-img"}
-      src={`${item[0].toString('base64')}`}
+      src={`${item[0]}`}
     />
               </Carousel.Item>
             );

@@ -1,0 +1,51 @@
+{
+	"name": "to-readable-stream",
+	"version": "4.0.0",
+	"description": "Convert a value to a ReadableStream",
+	"license": "MIT",
+	"repository": "sindresorhus/to-readable-stream",
+	"funding": "https://github.com/sponsors/sindresorhus",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "https://sindresorhus.com"
+	},
+	"type": "module",
+	"exports": {
+		"types": "./index.d.ts",
+		"default": "./index.js"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"test": "xo && ava && tsd"
+	},
+	"files": [
+		"index.js",
+		"index.d.ts"
+	],
+	"keywords": [
+		"stream",
+		"readablestream",
+		"string",
+		"buffer",
+		"uint8array",
+		"from",
+		"into",
+		"to",
+		"transform",
+		"convert",
+		"readable",
+		"pull"
+	],
+	"devDependencies": {
+		"ava": "^5.0.1",
+		"get-stream": "^6.0.1",
+		"tsd": "^0.24.1",
+		"xo": "^0.52.4"
+	},
+	"xo": {
+		"env": "browser"
+	}
+}
