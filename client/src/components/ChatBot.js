@@ -268,7 +268,9 @@ export default function ChatBot({ setToggleForm }) {
   };
 
   const handleClick = (e) => {
-    submitMessage();
+    if (message) {
+      submitMessage();
+    }
   };
 
   const getWidget = (widgetType) => {

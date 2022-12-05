@@ -449,7 +449,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <div id="App-header-logo-container">
+        <div id="App-header-logo-container" onClick={()=>{setToggleSplash(true)}}>
           <img src={logo} className="App-logo" alt="logo" />
           <p>EASY 311</p>
         </div>

@@ -42,7 +42,7 @@ body {
   align-items: center;
   background-color: var(--light-black);
   padding: 0.5rem 1rem;
-  height: 8vh;
+  height: fit-content;
 }
 
 #App-header-logo-container,
