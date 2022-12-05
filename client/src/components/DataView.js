@@ -295,7 +295,7 @@ export default function DataView({
               items={TIME_RANGE}
             />
           </div>
-          <div style={{ padding: "1rem" }}>
+          <div style={{ padding: "1rem", display:"flex" }}>
             {stats && (
               <DonutChart total={stats?.total} data={stats?.serviceStats} />
             )}
