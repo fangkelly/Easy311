@@ -4,6 +4,7 @@ import DeckGL, { GeoJsonLayer, FlyToInterpolator } from "deck.gl";
 import neighborhoods from "../data/neighborhoods.json";
 import center from "@turf/center";
 import { polygon } from "@turf/helpers";
+import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 
 const INITIAL_VIEW_STATE = {
   latitude: 40,
@@ -23,6 +24,12 @@ const NAV_CONTROL_STYLE = {
   right: "2vh",
 };
 
+
+
+const intensity = 1.75;
+const threshold = 0.1;
+const radiusPixels = 20;
+
 export default function Map({
   data,
   setPointData,
@@ -31,12 +38,22 @@ export default function Map({
   setDataView,
 }) {
   const [initialViewState, setInitialViewState] = useState(INITIAL_VIEW_STATE);
+  const [activeLayer, setActiveLayer] = useState({phl311:false, heatmp:true});
+
+
+ 
 
   useEffect(() => {
     if (neighborhood) {
-      flyToClick(center(polygon(neighborhood.geometry.coordinates[0])).geometry.coordinates, null, 13);
+      flyToClick(
+        center(polygon(neighborhood.geometry.coordinates[0])).geometry
+          .coordinates,
+        null,
+        13
+      );
     }
   }, [neighborhood]);
+  
 
   const flyToClick = useCallback((coords, obj = null, zoom = 15) => {
     if (obj) setPointData(obj);
@@ -46,6 +63,7 @@ export default function Map({
       zoom: zoom,
       transitionDuration: 1000,
       transitionInterpolator: new FlyToInterpolator(),
+      minZoom: 10
     });
   });
 
@@ -69,8 +87,8 @@ export default function Map({
     }),
 
     new GeoJsonLayer({
-      id: "neighborhoods", // layer id
-      data: neighborhood , // data formatted as array of objects
+      id: "neighborhood", // layer id
+      data: neighborhood, // data formatted as array of objects
       stroked: true,
       getLineWidth: 30,
       getFillColor: [128, 128, 128, 0],
@@ -94,9 +112,37 @@ export default function Map({
       getFillColor: [255, 255, 255], // rgb color values
       opacity: 0.9, // opacity 0 to 1
       pickable: true,
-      onClick: (info, event) => flyToClick(info.coordinate, info.object),
+      onClick: (info, event) => flyToClick(info.coordinate, info.object, 16),
+      visible: activeLayer.phl311
+    }),
+
+    new HeatmapLayer({
+      data,
+      id: "heatmp-layer",
+      pickable: false,
+      getPosition: (d) => d.geometry.coordinates,
+      radiusPixels,
+      intensity,
+      threshold,
+      opacity: 1,
+      colorRange: [
+        [208, 236, 236],
+        [108, 195, 196],
+        [52, 138, 174],
+        [0, 85, 154],
+        [0, 44, 79],
+      ],
+      visible: activeLayer.heatmp
     }),
   ];
+
+  const onViewStateChange = ({viewState}) => {
+    if (viewState.zoom>13) {
+      setActiveLayer({phl311:true, heatmp:false})
+    } else {
+      setActiveLayer({phl311:false, heatmp:true})
+    }
+  }
 
   return (
     <DeckGL
@@ -104,6 +150,7 @@ export default function Map({
       controller={true}
       layers={layers}
       ContextProvider={MapContext.Provider}
+      onViewStateChange={onViewStateChange}
     >
       <StaticMap
         mapboxApiAccessToken={MAPBOX_ACCESS_TOKEN}

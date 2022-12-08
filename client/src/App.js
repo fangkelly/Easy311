@@ -487,7 +487,7 @@ function App() {
                 setDataView(true)
                 }}>
                 {" "}
-                Data Visualization
+                View 311 Request Statistics
               </button>
             </div>
           </div>
@@ -718,6 +718,10 @@ function App() {
               }}
             >
               <div className="backDrop-btns">
+                
+                <button className="backDrop-btn">
+                  <FontAwesomeIcon icon={faShareNodes} color={"black"} />
+                </button>
                 <button
                   className="backDrop-btn"
                   onClick={(e) => {
@@ -726,9 +730,6 @@ function App() {
                   }}
                 >
                   <FontAwesomeIcon icon={faChevronDown} color={"black"} />
-                </button>
-                <button className="backDrop-btn">
-                  <FontAwesomeIcon icon={faShareNodes} color={"black"} />
                 </button>
               </div>
               <p className="backDrop">

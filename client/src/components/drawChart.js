@@ -25,9 +25,9 @@ const drawChart = (element, data, total) => {
     .select(element)
     .append("svg")
     .attr("preserveAspectRatio", "xMidYMid meet")
-    .attr("height", "600px")
+    .attr("height", "500px")
     .attr("width", "100%")
-    .attr("viewBox", `0 0 ${boxSize} 750`)
+    .attr("viewBox", `0 0 ${boxSize} 800`)
     .append("g")
     .attr("transform", `translate(${boxSize / 2}, 250)`);
 
@@ -92,7 +92,7 @@ const drawChart = (element, data, total) => {
       if (i<=4) {
         return "translate(" + (-250) + "," + (i * 50 + 270)+ ")";
       } else {
-        return "translate(" + (50) + "," + ((i-4) * 50 + 270)+ ")";
+        return "translate(" + (75) + "," + ((i-5) * 50 + 270)+ ")";
       }
     })
     .attr("class", "legend");   
