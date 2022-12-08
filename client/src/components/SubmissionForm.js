@@ -38,10 +38,6 @@ export default function SubmissionForm({ setToggleForm }) {
 
   const [geo, setGeo] = useState({});
 
-  useEffect(() => {
-    console.log(response);
-  }, [response]);
-
   const setCategory = (newCategory) => {
     setResponse({ ...response, category: newCategory });
   };

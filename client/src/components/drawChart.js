@@ -12,8 +12,8 @@ const drawChart = (element, data, total) => {
     "Vacant Lots": "#9BDBE8",
     "Street Light Outage": "#EDEAE4",
     "Property Maintenance": "#FFD9E3",
-    "Street Trees": "#32CACE",
-    Other: "#7F4C70",
+    "Street Trees": "#678FD2",
+    "Other": "#7F4C70",
   };
 
 

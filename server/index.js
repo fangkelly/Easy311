@@ -1,6 +1,6 @@
 const path = require("path");
 const fs = require("fs");
-const {PassThrough} = require("stream");
+const { PassThrough } = require("stream");
 const bodyParser = require("body-parser");
 
 const PORT = process.env.PORT || 3001;
@@ -113,7 +113,10 @@ async function uploadToFolder(auth, folderId, fileProps) {
     name: `${fileProps.name}.${fileProps.extension}`,
     parents: [folderId],
   };
-  let buffer = Buffer.from(fileProps.buffer.replace(/^data:.*;base64,/, ""), 'base64');
+  let buffer = Buffer.from(
+    fileProps.buffer.replace(/^data:.*;base64,/, ""),
+    "base64"
+  );
   let bufStream = new PassThrough();
   bufStream.end(buffer);
   const media = {
@@ -140,7 +143,10 @@ app.post("/upload_media", async (request, response) => {
   if (medias) {
     try {
       const auth = await getAuthToken();
-      const folder = await createFolder(auth, `${request.body.name}_${request.body.category}`);
+      const folder = await createFolder(
+        auth,
+        `${request.body.name}_${request.body.category}`
+      );
 
       for (let i = 0; i < medias.length; i++) {
         const fileProps = {
@@ -206,10 +212,7 @@ app.post("/add_reaction", async (request, response) => {
 
 // GET a service request's reactions
 app.get("/reactions", async (request, response) => {
-  console.log("in GET ", request.query);
-
   callback_reactions = (c) => {
-    console.log("here ", c);
     return response.send(c);
   };
 
@@ -317,22 +320,23 @@ app.get("/analysis_data", async (req, res, next) => {
   }
 });
 
-// TWITTER
+app.get("/philly", async (req, res, next) => {
+  try {
+    axios
+      .get(
+        `https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/City_Limits/FeatureServer/0/query?where=1%3D1&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&relationParam=&returnGeodetic=false&outFields=*&returnGeometry=true&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&defaultSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pgeojson&token=`
+      )
+      .then((response) => {
+        res.send(response.data.features);
+      })
+      .catch((error) => {
+        res.status(500).send(error)
+      });
+  } catch (err) {
+    next(err);
+  }
+});
 
-// const T = new Twit({
-//   consumer_key: process.env.API_KEY,
-//   consumer_secret: process.env.API_SECRET,
-//   access_token: process.env.ACCESS_TOKEN,
-//   access_token_secret: process.env.ACCESS_TOKEN_SECRET,
-// });
-
-// const getAuth = () => {
-//   T.post(`https://api.twitter.com/oauth/request_token?oauth_callback="https%3A%2F%2Fwww.easy311.app%2F%0A"`)
-// }
-
-// getAuth();
-
-// All other GET requests not handled before will return our React app
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../client/build", "index.html"));
 });

@@ -196,6 +196,12 @@ function App() {
   const [comments, setComments] = useState(null);
   const [commentSection, setCommentSection] = useState(false);
 
+
+
+
+
+
+
   useEffect(() => {
     if (pointData) {
       fetch(`/comments?id=${pointData.properties.service_request_id}`)

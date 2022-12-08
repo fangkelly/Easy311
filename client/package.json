@@ -25,7 +25,8 @@
     "@turf/boolean-point-in-polygon":"6.5.0",
     "@turf/center": "6.5.0",
     "d3":"7.6.1",
-    "browser-image-compression":"2.0.0"
+    "browser-image-compression":"2.0.0",
+    "ajax":"0.0.4"
   },
   "scripts": {
     "start": "react-scripts start",
