@@ -13,7 +13,7 @@ const INITIAL_VIEW_STATE = {
   zoom: 10.5,
   minZoom: 9,
   bearing: 0,
-pitch: 0
+  pitch: 0,
 };
 
 const MAPBOX_ACCESS_TOKEN =
@@ -35,6 +35,7 @@ export default function Map({
   neighborhood,
   setNeighborhood,
   setDataView,
+  enableHeatmap,
 }) {
   const [initialViewState, setInitialViewState] = useState(INITIAL_VIEW_STATE);
   const [activeLayer, setActiveLayer] = useState({
@@ -42,7 +43,7 @@ export default function Map({
     heatmp: true,
   });
 
-  const [cityBoundary, setCityBoundary] = useState(null)
+  const [cityBoundary, setCityBoundary] = useState(null);
 
   const colors = {
     "Illegal Dumping": [108, 195, 196, 200],
@@ -54,16 +55,14 @@ export default function Map({
     "Street Light Outage": [103, 143, 210, 200],
     "Property Maintenance": [255, 217, 227, 200],
     "Street Trees": [50, 202, 206, 200],
-    "Other": [127, 76, 112, 200],
+    Other: [127, 76, 112, 200],
   };
 
-  useEffect(()=>{
-
+  useEffect(() => {
     fetch("/philly")
-    .then(res=>res.json())
-    .then(data=>setCityBoundary(data))
-  }, [])
-
+      .then((res) => res.json())
+      .then((data) => setCityBoundary(data));
+  }, []);
 
   useEffect(() => {
     if (neighborhood) {
@@ -71,12 +70,21 @@ export default function Map({
         center(polygon(neighborhood.geometry.coordinates[0])).geometry
           .coordinates,
         null,
-        14, 0
+        14,
+        0
       );
     }
   }, [neighborhood]);
 
-  const flyToClick = useCallback((coords, obj = null, zoom = 15, pitch=0) => {
+  useEffect(()=>{
+    if (enableHeatmap) {
+      setActiveLayer({phl311:false, heatmp:true})
+    } else {
+      setActiveLayer({phl311:true, heatmp:false})
+    }
+  }, [enableHeatmap])
+
+  const flyToClick = useCallback((coords, obj = null, zoom = 15, pitch = 0) => {
     if (obj) setPointData(obj);
     setInitialViewState({
       longitude: coords[0],
@@ -85,12 +93,11 @@ export default function Map({
       transitionDuration: 1000,
       transitionInterpolator: new FlyToInterpolator(),
       minZoom: 9,
-      pitch: pitch
+      pitch: pitch,
     });
   });
 
   const layers = [
-
     new GeoJsonLayer({
       id: "philly", // layer id
       data: cityBoundary, // data formatted as array of objects
@@ -101,7 +108,7 @@ export default function Map({
       // getFillColor: [255, 255, 255, 20],
       wireframe: true,
       getLineColor: [255, 255, 255],
-      pickable: false
+      pickable: false,
     }),
 
     new GeoJsonLayer({
@@ -131,33 +138,41 @@ export default function Map({
       getLineColor: [152, 231, 231],
     }),
 
-
     new GeoJsonLayer({
       id: "phl311", // layer id
       data: data, // data formatted as array of objects
       // Styles
       filled: true, // filled in point
       stroked: true, // outline stroke
-      getLineColor: (d) =>{
+      getLineColor: (d) => {
         if (colors[d.properties.service_name]) {
-          return colors[d.properties.service_name]
+          return colors[d.properties.service_name];
         } else {
-          return colors["Other"]
+          return colors["Other"];
         }
-        
       },
-      lineWidthMinPixels: 7,
+      lineWidthMinPixels: 3,
       lineWidthUnits: "pixels",
-      pointRadiusMinPixels: 10, // minimum point radius (px)
-      radiusScale: 6,
+      pointRadiusMinPixels: 5, // minimum point radius (px)
+      radiusScale: 4,
       getPosition: (d) => d.geometry.coordinates, // coordinates [lng, lat] for each data point
       getFillColor: [255, 255, 255, 255], // rgb color values
       opacity: 0.9, // opacity 0 to 1
       pickable: true,
       onClick: (info, event) => {
-        flyToClick(info.coordinate, info.object, 16)
+        flyToClick(info.coordinate, info.object, 16);
       },
+      // getRadius: (d) => {
+      //   if (initialViewState.zoom > 14) {
+      //     return 10
+      //   } else {
+      //     return 5
+      //   };
+      // },
       visible: activeLayer.phl311,
+      // updateTriggers: {
+      //   getRadius: initialViewState.zoom,
+      // },
     }),
 
     new HeatmapLayer({
@@ -177,12 +192,14 @@ export default function Map({
       ],
       visible: activeLayer.heatmp,
       pickable: true,
-      onClick: (info, event) => {flyToClick(info.coordinate, null, 14)},
+      onClick: (info, event) => {
+        flyToClick(info.coordinate, null, 14);
+      },
     }),
   ];
 
   const onViewStateChange = ({ viewState }) => {
-    if (viewState.zoom > 13) {
+    if (viewState.zoom > 13 || !enableHeatmap) {
       setActiveLayer({ phl311: true, heatmp: false });
     } else {
       setActiveLayer({ phl311: false, heatmp: true });

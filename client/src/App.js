@@ -198,6 +198,7 @@ function App() {
 
   const [comments, setComments] = useState(null);
   const [commentSection, setCommentSection] = useState(false);
+  const [enableHeatmap, setEnableHeatmap] = useState(true);
 
   useEffect(() => {
     if (pointData) {
@@ -513,6 +514,7 @@ function App() {
           setPointData={setPointData}
           neighborhood={neighborhood}
           setNeighborhood={setNeighborhood}
+          enableHeatmap={enableHeatmap}
         />
         {dataView && (
           <DataView
@@ -901,7 +903,7 @@ function App() {
             </div>
             <hr />
             <div className="filter-section">
-              <p className="filter-label">Images</p>
+              <p className="filter-label">More</p>
               <Form className="filter-items">
                 <Form.Check
                   onChange={(e) => {
@@ -913,6 +915,17 @@ function App() {
                   id={`image-checkbox`}
                   checked={imageOnly}
                   className={imageOnly ? "active-label" : "inactive-label"}
+                />
+                <Form.Check
+                  onChange={(e) => {
+                    setEnableHeatmap(e.target.checked);
+                  }}
+                  key={"heatmap-checkbox"}
+                  label={"Enable Heatmap"}
+                  type={"checkbox"}
+                  id={`heatmap-checkbox`}
+                  checked={enableHeatmap}
+                  className={enableHeatmap ? "active-label" : "inactive-label"}
                 />
               </Form>
             </div>
