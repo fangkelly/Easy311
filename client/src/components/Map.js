@@ -158,7 +158,9 @@ export default function Map({
       getFillColor: [255, 255, 255, 255], // rgb color values
       opacity: 0.9, // opacity 0 to 1
       pickable: true,
-      onClick: (info, event) => {flyToClick(info.coordinate, info.object, 20)},
+      onClick: (info, event) => {
+        flyToClick(info.coordinate, info.object, 16)
+      },
       visible: activeLayer.phl311,
     }),
 

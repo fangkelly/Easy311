@@ -8,6 +8,7 @@ import {
   faCaretUp,
   faChevronDown,
   faCircle,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
@@ -160,6 +161,7 @@ export default function DataView({
   coordDict,
   neighborhoodDict,
   stats,
+  setDataView
 }) {
 
 
@@ -265,9 +267,14 @@ export default function DataView({
     <div className="card card-style">
       <div className="card-container" id={"data-container"}>
         <div className="data-section">
+          <div className="x-header">
           <p className="nor-name">
             {neighborhood ? neighborhood?.properties?.listname : "Philadelphia"}
           </p>
+
+          <FontAwesomeIcon icon={faXmark} color={"#A1A1A1"}
+                  size={"lg"} onClick={()=>{setDataView(false)}}/>
+          </div>
         </div>
         <div className="data-section">
           <p className="data-title">Number of Requests</p>

@@ -12,6 +12,8 @@ import {
   faPlus,
   faCommentDots,
   faShareNodes,
+  faMessage,
+  faCircleInfo
 } from "@fortawesome/free-solid-svg-icons";
 import "./App.css";
 import Map from "./components/Map.js";
@@ -195,12 +197,6 @@ function App() {
 
   const [comments, setComments] = useState(null);
   const [commentSection, setCommentSection] = useState(false);
-
-
-
-
-
-
 
   useEffect(() => {
     if (pointData) {
@@ -455,20 +451,18 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <div id="App-header-logo-container" onClick={()=>{setToggleSplash(true)}}>
+        <div
+          id="App-header-logo-container"
+          onClick={() => {
+            setToggleSplash(true);
+          }}
+        >
           <img src={logo} className="App-logo" alt="logo" />
           <p>EASY 311</p>
         </div>
         <div id="App-header-settings-container">
           <p>EN</p>
-          <FontAwesomeIcon
-            icon={dataView ? faXmark : faChartColumn}
-            color={"#A1A1A1"}
-            size={"lg"}
-            onClick={() => {
-              setDataView(!dataView);
-            }}
-          ></FontAwesomeIcon>
+          <FontAwesomeIcon icon={faCircleInfo} color={"#A1A1A1"} className={"fa-lg"}/>
         </div>
       </header>
       <div id={"map-container"}>
@@ -488,10 +482,13 @@ function App() {
               >
                 Submit a Request
               </button>
-              <button id="splash-bot" onClick={() => {
-                setToggleSplash(false)
-                setDataView(true)
-                }}>
+              <button
+                id="splash-bot"
+                onClick={() => {
+                  setToggleSplash(false);
+                  setDataView(true);
+                }}
+              >
                 {" "}
                 View 311 Request Statistics
               </button>
@@ -514,6 +511,7 @@ function App() {
             coordDict={dataDict.coordDict}
             neighborhoodDict={dataDict.neighborhoodDict}
             stats={stats}
+            setDataView={setDataView}
           />
         )}
 
@@ -724,7 +722,6 @@ function App() {
               }}
             >
               <div className="backDrop-btns">
-                
                 <button className="backDrop-btn">
                   <FontAwesomeIcon icon={faShareNodes} color={"black"} />
                 </button>
@@ -753,14 +750,34 @@ function App() {
             placeholder="Search for a service request by ID"
             onChange={(e) => setSearch(e.target.value)}
           ></input>
-          <button
-            id="filterToggle"
-            onClick={(e) => {
-              setToggleFilter(!toggleFilter);
-            }}
-          >
-            <FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon>
-          </button>
+
+          <div className="btns-container">
+            <button
+              id="filterToggle"
+              onClick={(e) => {
+                setToggleFilter(!toggleFilter);
+              }}
+            >
+              <FontAwesomeIcon
+                icon={faLayerGroup}
+                color={"#FFFFFF"}
+                size={"fa-lg"}
+              />
+            </button>
+
+            <button
+              id="dataToggle"
+              onClick={() => {
+                setDataView(!dataView);
+              }}
+            >
+              <FontAwesomeIcon
+                icon={faChartColumn}
+                color={"#FFFFFF"}
+                size={"fa-lg"}
+              ></FontAwesomeIcon>
+            </button>
+          </div>
         </div>
 
         <button
@@ -770,7 +787,7 @@ function App() {
             setToggleForm(true);
           }}
         >
-          Submit a service request
+          <FontAwesomeIcon icon={faMessage} className={"fa-2x"}/>
         </button>
 
         {toggleForm && <SubmissionForm setToggleForm={setToggleForm} />}
@@ -778,7 +795,17 @@ function App() {
         {toggleFilter && (
           <div className="filter-container card-style">
             <div className="filter-section">
-              <p className="filter-label">Status</p>
+              <div className="x-header">
+                <p className="filter-label">Status</p>
+                <FontAwesomeIcon
+                  icon={faXmark}
+                  color={"#A1A1A1"}
+                  size={"lg"}
+                  onClick={() => {
+                    setToggleFilter(false);
+                  }}
+                />
+              </div>
               <Form className="filter-items">
                 {STATUS_OPTIONS.map((label) => {
                   return (
