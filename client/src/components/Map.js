@@ -64,10 +64,6 @@ export default function Map({
     .then(data=>setCityBoundary(data))
   }, [])
 
-  useEffect(()=>{
-    console.log(cityBoundary)
-  }, [cityBoundary])
-
 
   useEffect(() => {
     if (neighborhood) {
@@ -102,6 +98,7 @@ export default function Map({
       stroked: true,
       getLineWidth: 50,
       filled: false,
+      // getFillColor: [255, 255, 255, 20],
       wireframe: true,
       getLineColor: [255, 255, 255],
       pickable: false
@@ -142,7 +139,6 @@ export default function Map({
       filled: true, // filled in point
       stroked: true, // outline stroke
       getLineColor: (d) =>{
-        console.log(d.properties.service_name)
         if (colors[d.properties.service_name]) {
           return colors[d.properties.service_name]
         } else {

@@ -219,7 +219,7 @@ export default function DataView({
       return (
         <div className="flexCol-sm" key={category}>
           <div className="flexRow">
-            <p className="font-16">{category}</p>
+            <p className="font-16">{category==="Rubbish and Recycling" ? "Missed Trash & Recycling Pickup" : category}</p>
             <p className="font-16">
               {perc_resolved > -1 ? `${perc_resolved}%` : "NA"}
             </p>

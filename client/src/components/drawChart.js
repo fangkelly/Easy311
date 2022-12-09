@@ -106,7 +106,7 @@ const drawChart = (element, data, total) => {
   
   legendG.append("text")
     .text(function(d){
-      return d[0];
+      return  d[0]==="Rubbish and Recycling" ? "Missed Trash & Recycling Pickup" : d[0];
     })
     .style("font-size", 25)
     .attr("y", 25)

@@ -152,6 +152,7 @@ function App() {
   const [stats, setStats] = useState(null);
   const [toggleForm, setToggleForm] = useState(false);
   const [toggleSplash, setToggleSplash] = useState(true);
+  const [imageOnly, setImageOnly] = useState(false);
 
   let emptySet = new Set();
 
@@ -248,6 +249,7 @@ function App() {
     if (analysisData) {
       return analysisData.filter(
         (d) =>
+          ((imageOnly && d.properties.media_url) || !imageOnly) &&
           d.properties.service_request_id.toString().startsWith(search) &&
           filterStatus.includes(d.properties.status) &&
           (filterCategory.includes(d.properties.service_name) ||
@@ -255,7 +257,7 @@ function App() {
               !filterCategory.includes(d.properties.service_name)))
       );
     }
-  }, [filterStatus, filterCategory, search, analysisData]);
+  }, [filterStatus, filterCategory, search, analysisData, imageOnly]);
 
   useEffect(() => {
     let serviceStats = {};
@@ -409,7 +411,6 @@ function App() {
   };
 
   const addReaction = (r) => {
-    console.log("triggered addReaction");
 
     const data = {
       id: pointData.properties.service_request_id,
@@ -483,14 +484,22 @@ function App() {
                 Submit a Request
               </button>
               <button
-                id="splash-bot"
+                id="splash-viz"
+                onClick={() => {
+                  setToggleSplash(false);
+                  // setDataView(true);
+                }}
+              >
+                View 311 Requests
+              </button>
+              <button
+                id="splash-viz"
                 onClick={() => {
                   setToggleSplash(false);
                   setDataView(true);
                 }}
               >
-                {" "}
-                View 311 Request Statistics
+                View 311 Analytics
               </button>
             </div>
           </div>
@@ -761,7 +770,7 @@ function App() {
               <FontAwesomeIcon
                 icon={faLayerGroup}
                 color={"#FFFFFF"}
-                size={"fa-lg"}
+                className={"fa-lg"}
               />
             </button>
 
@@ -774,7 +783,7 @@ function App() {
               <FontAwesomeIcon
                 icon={faChartColumn}
                 color={"#FFFFFF"}
-                size={"fa-lg"}
+                className={"fa-lg"}
               ></FontAwesomeIcon>
             </button>
           </div>
@@ -860,7 +869,7 @@ function App() {
                         }
                       }}
                       key={label}
-                      label={label}
+                      label={label==="Rubbish and Recycling" ? "Missed Trash & Recycling Pickup" : label}
                       name={label}
                       type={"checkbox"}
                       id={`${label}-checkbox`}
@@ -874,6 +883,30 @@ function App() {
                   );
                 })}
               </Form>
+            </div>
+            <hr />
+            <div className="filter-section">
+              <p className="filter-label">Images</p>
+              <Form className="filter-items">
+                
+                    <Form.Check
+                      onChange={(e) => {
+                        setImageOnly(e.target.checked)
+                      }}
+                      key={"image-checkbox"}
+                      label={"Only show requests with images"}
+                      type={"checkbox"}
+                      id={`image-checkbox`}
+                      checked={imageOnly}
+                      className={
+                        imageOnly
+                          ? "active-label"
+                          : "inactive-label"
+                      }
+                    />
+              
+              </Form>
+              
             </div>
           </div>
         )}
