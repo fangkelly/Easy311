@@ -90,9 +90,9 @@ const drawChart = (element, data, total) => {
     .enter().append("g")
     .attr("transform", function(d,i){
       if (i<=4) {
-        return "translate(" + (-225) + "," + (i * 55 + 270)+ ")";
+        return "translate(" + (-235) + "," + (i * 55 + 270)+ ")";
       } else {
-        return "translate(" + (45) + "," + ((i-5) * 55 + 270)+ ")";
+        return "translate(" + (35) + "," + ((i-5) * 55 + 270)+ ")";
       }
     })
     .attr("class", "legend");   
