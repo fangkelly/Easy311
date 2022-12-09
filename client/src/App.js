@@ -488,22 +488,22 @@ function App() {
                 Submit a Request
               </button>
               <button
-                id="splash-viz"
+                id="splash-bot"
                 onClick={() => {
                   setToggleSplash(false);
                   // setDataView(true);
                 }}
               >
-                View 311 Requests
+                View Request Map
               </button>
               <button
-                id="splash-viz"
+                id="splash-bot"
                 onClick={() => {
                   setToggleSplash(false);
                   setDataView(true);
                 }}
               >
-                View 311 Analytics
+                View Request Analytics
               </button>
             </div>
           </div>
