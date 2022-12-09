@@ -16,6 +16,13 @@ const reactionModel = require("../models/ReactionModel");
 const Twit = require("twit");
 const app = express();
 
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+const twilAccount = process.env.TWILIO_ACCOUNT_SID;
+const twilAuth = process.env.TWILIO_AUTH_TOKEN;
+const twilClient = require('twilio')(twilAccount, twilAuth);
+
 // Database connection
 mongoose.connect(
   `mongodb+srv://fangk:9V4kU5bXwCYHuz@easy311.oulkflp.mongodb.net/?retryWrites=true&w=majority`,
@@ -165,7 +172,7 @@ app.post("/upload_media", async (request, response) => {
   }
 });
 
-app.post("/write_sheets", async (request, response) => {
+app.post("/write_sheets", async (request, res) => {
   try {
     const auth = await getAuthToken();
     const response = await writeSpreadSheetValues(
@@ -176,10 +183,90 @@ app.post("/write_sheets", async (request, response) => {
       },
       request.body
     );
-    console.log(
-      "output for getSpreadSheetValues",
-      JSON.stringify(response.data, null, 2)
-    );
+
+    const msg = {
+      to: "fangk@mit.edu", // Change to your recipient
+      from: "easy311@mit.edu", // Change to your verified sender
+      subject: "New Easy 311 Request Made",
+      text: `Hello! 
+      
+      A new Easy 311 submission has been made. Please check the spreadsheet: https://docs.google.com/spreadsheets/d/1BQB3HWjFXnxcbvG0uzv72dLMk3CkI7whFJoufnUa_Y0/edit?usp=sharing.
+      
+      Here is the information:
+          Name: ${request.body.name}
+          Email: ${request.body.email}
+          Phone: ${request.body.phone}
+          Category: ${request.body.category}
+          Description: ${request.body.description}
+          Location: ${request.body.address}
+
+      If the user provided images, you will be able to access them via the link in the spreadhseet.
+
+      If the contact information is given, please reach out to the user for updates on the status of the request. Thank you for looking after the Philadelphia community!
+
+      Best, 
+      Easy 311
+      `,
+    };
+
+
+    // sgMail
+    //   .send(msg)
+    //   .then(() => {
+    //     console.log("Email sent");
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   });
+
+    if (request.body.email) {
+      const msg_2 = {
+        to: `${request.body.email}`, // Change to your recipient
+        from: `easy311@mit.edu`, // Change to your verified sender
+        subject: `Thank you for your Easy 311 Submission, ${request.body.name?request.body.name:''}`,
+        text: `
+
+        Thank you for your Easy 311 Submission, ${request.body.name?request.body.name:''}!
+
+        Here is what we received from you:
+            Name: ${request.body.name}
+            Email: ${request.body.email}
+            Phone: ${request.body.phone}
+            Category: ${request.body.category}
+            Description: ${request.body.description}
+            Location: ${request.body.address}
+            Your images have been uploaded to our data base.
+
+        A volunteer/advocate will be in touch with you shortly to update you on the status of this request. Thank you for looking after the Philadelphia community!
+
+        Best,
+        Easy 311
+      `,
+      };
+
+      sgMail
+      .send(msg_2)
+      .then(() => {
+        console.log("Email sent");
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    } 
+
+    // if (request.body.phone) {
+    //   twilClient.messages
+    //   .create({
+    //      body: 'McAvoy or Stewart? These timelines can get so confusing.',
+    //      from: '+13609970826',
+    //      statusCallback: 'https://enn1ytq92dedf.x.pipedream.net/',
+    //      to: `+1${request.body.}`
+    //    })
+    //   .then(message => console.log(message.sid));
+    // }
+
+    res.send(response);
   } catch (error) {
     console.log(error.message, error.stack);
   }
@@ -330,7 +417,7 @@ app.get("/philly", async (req, res, next) => {
         res.send(response.data.features);
       })
       .catch((error) => {
-        res.status(500).send(error)
+        res.status(500).send(error);
       });
   } catch (err) {
     next(err);

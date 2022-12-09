@@ -6,6 +6,7 @@ import SlideShow from "./SlideShow";
 import LoadingWheel from "./LoadingWheel";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import { set } from "mongoose";
 
 const SPREADSHEET_ID = "1BQB3HWjFXnxcbvG0uzv72dLMk3CkI7whFJoufnUa_Y0";
 const CLIENT_ID =
@@ -43,21 +44,21 @@ export default function ChatBot({ setToggleForm }) {
   });
 
   const [geo, setGeo] = useState({});
-
+  const categoryMap = {
+    1: "Illegal Dumping",
+    2: "Rubbish and Recycling",
+    3: "Abandoned Vehicle",
+    4: "Pothole Repair",
+    5: "Graffiti Removal",
+    6: "Vacant Lots",
+    7: "Street Light Outage",
+    8: "Property Maintenance",
+    9: "Street Trees",
+    10: "Other",
+  };
 
   const setCategory = (newCategory) => {
-    const categoryMap = {
-      1: "Illegal Dumping",
-      2: "Rubbish and Recycling",
-      3: "Abandoned Vehicle",
-      4: "Pothole Repair",
-      5: "Graffiti Removal",
-      6: "Vacant Lots",
-      7: "Street Light Outage",
-      8: "Property Maintenance",
-      9: "Street Trees",
-      10: "Other",
-    };
+    
     setResponse({ ...response, category: categoryMap[newCategory] });
   };
 
@@ -231,11 +232,13 @@ export default function ChatBot({ setToggleForm }) {
   const [messageHistory, setMessageHistory] = useState([
     {
       sender: "bot",
-      message: "Hi. Welcome to EASY 311. What is your name?",
+      message: `Hi! Welcome to EASY 311. What kind of service request can I help you submit today? Please select a number from below:
+      \n 1. Illegal Dumping \n 2. Rubbish and Recycling \n 3. Abandoned Vehicle \n 4. Pothole Repair \n 5. Graffiti Removal \n 6. Vacant Lots \n 7. Street Light Outage \n 8. Property Maintenance \n 9. Street Trees \n 10. Other`,
     },
   ]);
   const [currentStep, setCurrentStep] = useState(0);
   const [sendResponse, setSendResponse] = useState(false);
+  const [proofread, setProofread] = useState(false);
 
   const submitMessage = () => {
     setMessageHistory([
@@ -246,14 +249,14 @@ export default function ChatBot({ setToggleForm }) {
     setSendResponse(true);
   };
 
+
   useEffect(() => {
     if (sendResponse) {
       messageParser(message);
       setSendResponse(false);
       setMessage("");
     }
-  }, [sendResponse]);
-
+  }, [sendResponse, response.media]);
 
   useEffect(() => {
     const chatbot = document.getElementsByClassName("messages")[0];
@@ -322,7 +325,9 @@ export default function ChatBot({ setToggleForm }) {
               },
               body: JSON.stringify({
                 ...data,
-                media: `https://drive.google.com/drive/folders/${d.folderId}`,
+                media: d.folderId
+                  ? `https://drive.google.com/drive/folders/${d.folderId}`
+                  : "No images provided",
               }),
             })
               .then((res) => {
@@ -360,23 +365,13 @@ export default function ChatBot({ setToggleForm }) {
         ...messageHistory,
         {
           sender: "bot",
-          message: "Hi. Welcome to EASY 311. What is your name?",
-        },
-      ]);
-      setCurrentStep(0);
-    } else if (currentStep === 0) {
-      setName(msg);
-      setMessageHistory([
-        ...messageHistory,
-        {
-          sender: "bot",
-          message: `Nice to meet you ${msg}! \nWhat type of service request would you like to make? Please select a number from below: 
+          message: `Hi! Welcome to EASY 311. What kind of service request can I help you submit today?
           \n 1. Illegal Dumping \n 2. Rubbish and Recycling \n 3. Abandoned Vehicle \n 4. Pothole Repair \n 5. Graffiti Removal \n 6. Vacant Lots \n 7. Street Light Outage \n 8. Property Maintenance \n 9. Street Trees \n 10. Other`,
         },
       ]);
-      setCurrentStep(1);
-      setSendResponse(false);
-    } else if (currentStep === 1) {
+      setProofread(false);
+      setCurrentStep(0);
+    } else if (currentStep === 0) {
       let option = parseInt(msg);
       if (!option || option < 1 || option > 10) {
         setMessageHistory([
@@ -389,18 +384,40 @@ export default function ChatBot({ setToggleForm }) {
         ]);
       } else {
         setCategory(option);
-        setMessageHistory([
-          ...messageHistory,
-          {
-            sender: "bot",
-            message:
-              "Would you like to submit any supporting media including images or videos? [Y/N]",
-          },
-        ]);
-        setCurrentStep(2);
-        setSendResponse(false);
+        if (proofread) {
+          setMessageHistory([
+            ...messageHistory,
+            {
+              sender: "bot",
+              message: `Here is what we have from you:
+              1. Category: ${categoryMap[option]|| "N/A"}
+              2. Location: ${response.address || "N/A"}
+              3. Description: ${response.description || "N/A"}
+              4. Email: ${response.email || "N/A"}
+              5. Phone: ${response.phone || "N/A"}
+              6. Media: ${response.media?.length || 0} files
+  
+              If you would like to make your submission, please type 0.
+              If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
+              `,
+            },
+          ]);
+          setCurrentStep(11);
+          setSendResponse(false);
+        } else {
+          setMessageHistory([
+            ...messageHistory,
+            {
+              sender: "bot",
+              message:
+                "Would you like to submit any supporting media including images or videos? [Y/N]",
+            },
+          ]);
+          setCurrentStep(1);
+          setSendResponse(false);
+        }
       }
-    } else if (currentStep === 2) {
+    } else if (currentStep === 1) {
       if (msg.toLowerCase() !== "y" && msg.toLowerCase() !== "n") {
         setMessageHistory([
           ...messageHistory,
@@ -419,6 +436,32 @@ export default function ChatBot({ setToggleForm }) {
             widget: "media_upload",
           },
         ]);
+        setCurrentStep(2);
+        setSendResponse(false);
+      } else {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message:
+              "Where is this issue located? You can type in an address or use your current location.",
+            widget: "geolocate",
+          },
+        ]);
+        setCurrentStep(3);
+        setSendResponse(false);
+      }
+    } else if (currentStep === 2) {
+      if (!proofread) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message:
+              "Where is this issue located? You can type in an address or use your current location.",
+            widget: "geolocate",
+          },
+        ]);
         setCurrentStep(3);
         setSendResponse(false);
       } else {
@@ -426,132 +469,157 @@ export default function ChatBot({ setToggleForm }) {
           ...messageHistory,
           {
             sender: "bot",
-            message: "Where is this issue located?",
-            widget: "geolocate",
+            message: `Here is what we have from you:
+            1. Category: ${response.category|| "N/A"}
+            2. Location: ${response.address || "N/A"}
+            3. Description: ${response.description || "N/A"}
+            4. Email: ${response.email || "N/A"}
+            5. Phone: ${response.phone || "N/A"}
+            6. Media: ${response.media?.length || 0} files
+
+            If you would like to make your submission, please type 0.
+            If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
+            `,
+          },
+        ]);
+        setCurrentStep(11);
+        setSendResponse(false);
+      }
+    } else if (currentStep === 3) {
+      setAddress(msg);
+      if (!proofread) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Describe the issue.",
           },
         ]);
         setCurrentStep(4);
         setSendResponse(false);
+      } else {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `Here is what we have from you:
+            1. Category: ${response.category|| "N/A"}
+            2. Location: ${msg || "N/A"}
+            3. Description: ${response.description || "N/A"}
+            4. Email: ${response.email || "N/A"}
+            5. Phone: ${response.phone || "N/A"}
+            6. Media: ${response.media?.length || 0} files
+
+            If you would like to make your submission, please type 0.
+            If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
+            `,
+          },
+        ]);
+        setSendResponse(false);
+        setCurrentStep(11)
       }
-    } else if (currentStep === 3) {
-      setMessageHistory([
-        ...messageHistory,
-        {
-          sender: "bot",
-          message:
-            "Where is this issue located? You can type in an address or use your current location.",
-          widget: "geolocate",
-        },
-      ]);
-      setCurrentStep(4);
-      setSendResponse(false);
     } else if (currentStep === 4) {
-      setAddress(msg);
-      setMessageHistory([
-        ...messageHistory,
-        {
-          sender: "bot",
-          message: "Describe the issue.",
-        },
-      ]);
-      setCurrentStep(5);
-      setSendResponse(false);
-    } else if (currentStep === 5) {
       setDescription(msg);
-      setMessageHistory([
-        ...messageHistory,
-        {
-          sender: "bot",
-          message:
-            "If you would like to remain updated on the status of your request, please indicate how you would like to be contacted: \n \n 1. E-mail address \n 2. Phone Number \n 3. I do not want to be updated on the status of this service request.",
-        },
-      ]);
-      setCurrentStep(6);
-      setSendResponse(false);
-    } else if (currentStep === 6) {
-      let option = parseInt(msg);
-      if (!option || option < 1 || option > 3) {
+      if (!proofread) {
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
             message:
-              "Please select a valid number from below: \n 1. E-mail address \n 2. Phone Number \n 3. I do not want to be updated on the status of this service request.",
+              "Would you like to provide your email address so that our volunteer/advocate can help update you on the status of your request? [Y/N]",
           },
         ]);
-      } else if (option === 1) {
-        setMessageHistory([
-          ...messageHistory,
-          {
-            sender: "bot",
-            message: "What is your email address?",
-          },
-        ]);
-
-        setCurrentStep(7);
-        setSendResponse(false);
-      } else if (option === 2) {
-        setMessageHistory([
-          ...messageHistory,
-          {
-            sender: "bot",
-            message: "What is your phone number?",
-          },
-        ]);
-
-        setCurrentStep(8);
+        setCurrentStep(5);
         setSendResponse(false);
       } else {
-        let date = new Date();
-        date = date.toString();
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
-            message: `Thank you for submitting via EASY 311. Here is what we have from you: 
-            Name: ${response.name}
-            Category: ${response.category}
-            Location: ${response.address}
-            Description: ${response.description}
-            Email: ${response.email}
-            Phone: ${response.phone}
-            Media: ${response.media?.length || 0} files
+            message: `Here is what we have from you:
+            1. Category: ${response.category || "N/A"}
+            2. Location: ${response.address || "N/A"}
+            3. Description: ${msg || "N/A"}
+            4. Email: ${response.email || "N/A"}
+            5. Phone: ${response.phone || "N/A"}
+            6. Media: ${response.media?.length || 0} files
 
-            Feel free to submit a new request by typing anything.
+            If you would like to make your submission, please type 0.
+            If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
             `,
           },
         ]);
-        setCurrentStep(-1);
-        setSendResponse(true);
-        console.log("DATE ", date);
-        handleSubmit({ ...response, date: date });
+        setSendResponse(false);
+        setCurrentStep(11);
       }
-    } else if (currentStep === 7) {
+    } else if (currentStep === 5) {
+      if (msg.toLowerCase() !== "y" && msg.toLowerCase() !== "n") {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message:
+              "Please respond with either 'Y' or 'N' to indicate if you would like to provide your email address.",
+          },
+        ]);
+      } else if (msg.toLowerCase() === "y") {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Please provide your email address.",
+          },
+        ]);
+        setSendResponse(false);
+        setCurrentStep(6);
+      } else {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message:
+              "Would you like to provide your phone number so that our volunteer/advocate can help update you on the status of your request? [Y/N]",
+          },
+        ]);
+        setSendResponse(false);
+        setCurrentStep(7);
+      }
+    } else if (currentStep === 6) {
       const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       let email = msg;
       if (re.test(email)) {
-        // setEmail(email);
-        setMessageHistory([
-          ...messageHistory,
-          {
-            sender: "bot",
-            message: `Thank you for submitting via EASY 311. Here is what we have from you: \n
-            Name: ${response.name}
-            Category: ${response.category}
-            Location: ${response.address}
-            Description: ${response.description}
-            Email: ${email}
-            Phone: ${response.phone}
-            Media: ${response.media?.length || 0} files
-
-            Feel free to submit a new request by typing anything.
-            `,
-          },
-        ]);
-        setCurrentStep(-1);
-        let date = new Date();
-        date = date.toString();
-        handleSubmit({ ...response, email: email, date: date });
+        setEmail(email);
+        if (!proofread) {
+          setMessageHistory([
+            ...messageHistory,
+            {
+              sender: "bot",
+              message: `Would you like to provide your phone number so that our volunteer/advocate can help update you on the status of your request? [Y/N]`,
+            },
+          ]);
+          setSendResponse(false);
+          setCurrentStep(7);
+        } else {
+          setMessageHistory([
+            ...messageHistory,
+            {
+              sender: "bot",
+              message: `Here is what we have from you:
+              1. Category: ${response.category || "N/A"}
+              2. Location: ${response.address || "N/A"}
+              3. Description: ${response.description || "N/A"}
+              4. Email: ${email || "N/A"}
+              5. Phone: ${response.phone || "N/A"}
+              6. Media: ${response.media?.length || 0} files
+  
+              If you would like to make your submission, please type 0.
+              If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
+              `,
+            },
+          ]);
+          setSendResponse(false);
+          setCurrentStep(11);
+        }
       } else {
         setMessageHistory([
           ...messageHistory,
@@ -560,43 +628,308 @@ export default function ChatBot({ setToggleForm }) {
             message: "Please submit a valid email address.",
           },
         ]);
+        setSendResponse(false);
+
       }
-    } else if (currentStep === 8) {
-      const re = /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
-      let number = msg;
-      let date = new Date();
-      date = date.toString();
-      if (re.test(number)) {
-        // setPhone(number);
+    } else if (currentStep === 7) {
+      if (msg.toLowerCase() !== "y" && msg.toLowerCase() !== "n") {
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
-            message: `Thank you for submitting via EASY 311. Here is what we have from you: \n
-            Name: ${response.name}
-            Category: ${response.category}
-            Location: ${response.address}
-            Description: ${response.description}
-            Email: ${response.email}
-            Phone: ${number}
-            Media: ${response.media?.length || 0} files
-
-            Feel free to submit a new request by typing anything.
-            `,
+            message:
+              "Please respond with either 'Y' or 'N' to indicate if you would like to provide your phone number.",
           },
         ]);
-        handleSubmit({ ...response, phone: number, date: date });
+        setSendResponse(false);
+
+      } else if (msg.toLowerCase() === "y") {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message:
+              "Please provide your phone number. Do not include the country code!",
+          },
+        ]);
+        setSendResponse(false);
+        setCurrentStep(8);
       } else {
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
-            message: "Please submit a valid 10-digit phone number.",
+            message: "Lastly, would you like to provide your name? [Y/N]",
+          },
+        ]);
+        setSendResponse(false);
+        setCurrentStep(9);
+      }
+    } else if (currentStep === 8) {
+      const re = /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
+      let number = msg;
+      setPhone(number);
+      if (re.test(number)) {
+        if (!proofread) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `Lastly, would you like to provide your name? [Y/N]`,
+          },
+        ]);
+        setSendResponse(false);
+
+        setCurrentStep(9);} else {
+          setMessageHistory([
+            ...messageHistory,
+            {
+              sender: "bot",
+              message: `Here is what we have from you:
+              1. Category: ${response.category || "N/A"}
+              2. Location: ${response.address || "N/A"}
+              3. Description: ${response.description || "N/A"}
+              4. Email: ${response.email || "N/A"}
+              5. Phone: ${number || "N/A"}
+              6. Media: ${response.media?.length || 0} files
+  
+              If you would like to make your submission, please type 0.
+              If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
+              `,
+            },
+
+          ]);
+          setSendResponse(false);
+
+          setCurrentStep(11);
+        }
+      } else {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "Please provide a valid phone number.",
           },
         ]);
       }
+    } else if (currentStep === 9) {
+      if (msg.toLowerCase() !== "y" && msg.toLowerCase() !== "n") {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message:
+              "Please respond with either 'Y' or 'N' to indicate if you would like to provide your name.",
+          },
+        ]);
+        setSendResponse(false);
+
+      } else if (msg.toLowerCase() === "y") {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: "What is your name?",
+          },
+        ]);
+        setSendResponse(false);
+
+        setCurrentStep(10);
+      } else {
+        let date = new Date();
+        date = date.toString();
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `Here is what we have from you:
+            1. Category: ${response.category || "N/A"}
+            2. Location: ${response.address || "N/A"}
+            3. Description: ${response.description || "N/A"}
+            4. Email: ${response.email || "N/A"}
+            5. Phone: ${response.phone || "N/A"}
+            6. Media: ${response.media?.length || 0} files
+
+            If you would like to make your submission, please type 0.
+            If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
+            `,
+          },
+        ]);
+        setCurrentStep(11);
+        setSendResponse(false);
+        // handleSubmit({ ...response, date: date });
+      }
+    } else if (currentStep === 10) {
+      let date = new Date();
+      date = date.toString();
+      setName(msg);
+      setMessageHistory([
+        ...messageHistory,
+        {
+          sender: "bot",
+          message: `Here is what we have from you:
+            1. Category: ${response.category || "N/A"}
+            2. Location: ${response.address || "N/A"}
+            3. Description: ${response.description || "N/A"}
+            4. Email: ${response.email || "N/A"}
+            5. Phone: ${response.phone || "N/A"}
+            6. Media: ${response.media?.length || 0} files
+
+            If you would like to complete your submission, please type 0.
+            If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
+            `,
+        },
+      ]);
+      setProofread(true);
+      setCurrentStep(11);
+      setSendResponse(false);
+    } else if (currentStep === 11) {
+      setSendResponse(false);
+      const option = parseInt(msg);
+      if (option < 0 || option > 7) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `If you would like to complete your submission, please type 0.
+         If you would like to change any of your responses, please type the number corresponding to the field you would like to correct:
+          1: Category
+          2: Location
+          3: Description
+          4: Email
+          5: Phone
+          6: Media
+         `,
+          },
+        ]);
+      } else if (option === 0) {
+        let date = new Date();
+        date = date.toString();
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `Congrats! You've submitted to Easy 311! Here is what we received from you.
+
+            1. Category: ${response.category || "N/A"}
+            2. Location: ${response.address || "N/A"}
+            3. Description: ${response.description || "N/A"}
+            4. Email: ${response.email || "N/A"}
+            5. Phone: ${response.phone || "N/A"}
+            6. Media: ${response.media?.length || 0} files
+
+            If you've provded your email or phone number, a volunteer/advocate will be in touch with you shortly to update you on the status of your request.
+            To begin another submission, texy anything in the chat.
+            Thank you for looking after the Philly community <3
+            `,
+          },
+        ]);
+        setCurrentStep(-1);
+        setSendResponse(false);
+        setProofread(false);
+        handleSubmit({ ...response, date: date });
+      
+      } else if (option === 1) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `What would you like to change the category of your request to?
+            \n 1. Illegal Dumping \n 2. Rubbish and Recycling \n 3. Abandoned Vehicle \n 4. Pothole Repair \n 5. Graffiti Removal \n 6. Vacant Lots \n 7. Street Light Outage \n 8. Property Maintenance \n 9. Street Trees \n 10. Other`,
+          },
+        ]);
+        setProofread(true);
+        setCurrentStep(0);
+        setSendResponse(false);
+
+      } else if (option === 2) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `What would you like to change the location of the service request to?`,
+            widget: "geolocate",
+          },
+        ]);
+        setProofread(true);
+        setCurrentStep(3);
+        setSendResponse(false);
+
+      } else if (option === 3) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `What would you like to change the description of the service request to?`,
+          
+          },
+        ]);
+        setProofread(true);
+        setCurrentStep(4);
+        setSendResponse(false);
+
+      } else if (option === 4) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `What would you like to change the email to?`,
+          },
+        ]);
+        setProofread(true);
+        setCurrentStep(6);
+        setSendResponse(false);
+
+      } else if (option === 5) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `What would you like to change the phone number to?`,
+          },
+        ]);
+        setProofread(true);
+        setCurrentStep(8);
+        setSendResponse(false);
+
+      } else if (option === 6) {
+        setMessageHistory([
+          ...messageHistory,
+          {
+            sender: "bot",
+            message: `What would you like to change the media to?`,
+            widget: "media_upload"
+          },
+        ]);
+        setProofread(true);
+        setSendResponse(false);
+
+        setCurrentStep(12);
+
+      }
+    } else if (currentStep===12) {
+      setMessageHistory([
+        ...messageHistory,
+        {
+          sender: "bot",
+          message: `Here is what we have from you:
+          1. Category: ${response.category || "N/A"}
+          2. Location: ${response.address || "N/A"}
+          3. Description: ${response.description || "N/A"}
+          4. Email: ${response.email || "N/A"}
+          5. Phone: ${response.phone || "N/A"}
+          6. Media: Updated files
+
+          If you would like to make your submission, please type 0.
+          If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
+          `,
+        },
+      ]);
+      setCurrentStep(11);
+      setSendResponse(false);
     }
   };
+
 
   return (
     <div className="chatbot-container">

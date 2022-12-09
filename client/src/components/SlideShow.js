@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Carousel from "react-bootstrap/Carousel";
 
 export default function SlideShow({ items }) {
-    console.log("slideshow items ", items)
   return (
       <>
     {items &&  (<div id={"image-carousel"}>

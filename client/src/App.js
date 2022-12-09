@@ -13,7 +13,7 @@ import {
   faCommentDots,
   faShareNodes,
   faMessage,
-  faCircleInfo
+  faCircleInfo,
 } from "@fortawesome/free-solid-svg-icons";
 import "./App.css";
 import Map from "./components/Map.js";
@@ -411,7 +411,6 @@ function App() {
   };
 
   const addReaction = (r) => {
-
     const data = {
       id: pointData.properties.service_request_id,
       reactions: {
@@ -463,7 +462,11 @@ function App() {
         </div>
         <div id="App-header-settings-container">
           <p>EN</p>
-          <FontAwesomeIcon icon={faCircleInfo} color={"#A1A1A1"} className={"fa-lg"}/>
+          <FontAwesomeIcon
+            icon={faCircleInfo}
+            color={"#A1A1A1"}
+            className={"fa-lg"}
+          />
         </div>
       </header>
       <div id={"map-container"}>
@@ -723,6 +726,8 @@ function App() {
                 padding: "1rem 1rem",
                 height: "calc(100vh)",
                 width: "calc(100vw)",
+                maxWidth: 500,
+                margin:"auto",
                 backgroundSize: "cover",
                 backgroundImage: `url(${
                   pointData?.properties?.media_url ||
@@ -796,7 +801,7 @@ function App() {
             setToggleForm(true);
           }}
         >
-          <FontAwesomeIcon icon={faMessage} className={"fa-2x"}/>
+          <FontAwesomeIcon icon={faMessage} className={"fa-lg"} />
         </button>
 
         {toggleForm && <SubmissionForm setToggleForm={setToggleForm} />}
@@ -869,7 +874,11 @@ function App() {
                         }
                       }}
                       key={label}
-                      label={label==="Rubbish and Recycling" ? "Missed Trash & Recycling Pickup" : label}
+                      label={
+                        label === "Rubbish and Recycling"
+                          ? "Missed Trash & Recycling Pickup"
+                          : label
+                      }
                       name={label}
                       type={"checkbox"}
                       id={`${label}-checkbox`}
@@ -888,25 +897,18 @@ function App() {
             <div className="filter-section">
               <p className="filter-label">Images</p>
               <Form className="filter-items">
-                
-                    <Form.Check
-                      onChange={(e) => {
-                        setImageOnly(e.target.checked)
-                      }}
-                      key={"image-checkbox"}
-                      label={"Only show requests with images"}
-                      type={"checkbox"}
-                      id={`image-checkbox`}
-                      checked={imageOnly}
-                      className={
-                        imageOnly
-                          ? "active-label"
-                          : "inactive-label"
-                      }
-                    />
-              
+                <Form.Check
+                  onChange={(e) => {
+                    setImageOnly(e.target.checked);
+                  }}
+                  key={"image-checkbox"}
+                  label={"Only show requests with images"}
+                  type={"checkbox"}
+                  id={`image-checkbox`}
+                  checked={imageOnly}
+                  className={imageOnly ? "active-label" : "inactive-label"}
+                />
               </Form>
-              
             </div>
           </div>
         )}
