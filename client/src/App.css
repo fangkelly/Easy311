@@ -331,6 +331,17 @@ body {
   font-size: 16px;
 }
 
+.deselect-btns {
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  border-radius: 20px; 
+  padding: 4px 16px; 
+  margin-right: 16px;
+  background-color: transparent;
+  margin-bottom: 1rem;
+}
+
+
 #filterToggle,
 #dataToggle {
   margin: auto;

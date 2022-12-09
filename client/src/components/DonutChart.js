@@ -13,9 +13,7 @@ const DonutChart = ({ data, total }) => {
   }, [ref, data]);
 
   return (
-    <div className="container">
       <div className="graph" ref={ref} />
-    </div>
   );
 };
 

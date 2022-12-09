@@ -122,7 +122,7 @@ function SearchBox({ neighborhood, setNeighborhood }) {
           locationSearch
         }
         id="dataView-searchBar"
-        placeholder={"Search Neighborhood"}
+        placeholder={"Location"}
         onChange={(e) => {
           setNeighborhood(null);
           setLocationSearch(e.target.value);
@@ -302,11 +302,9 @@ export default function DataView({
               items={TIME_RANGE}
             />
           </div>
-          <div style={{ padding: "1rem", display:"flex" }}>
             {stats && (
               <DonutChart total={stats?.total} data={stats?.serviceStats} />
             )}
-          </div>
         </div>
         <div className="data-section">
           <p className="data-title">Requests Completed</p>

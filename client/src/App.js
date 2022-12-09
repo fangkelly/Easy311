@@ -252,9 +252,9 @@ function App() {
           ((imageOnly && d.properties.media_url) || !imageOnly) &&
           d.properties.service_request_id.toString().startsWith(search) &&
           filterStatus.includes(d.properties.status) &&
-          (filterCategory.includes(d.properties.service_name) ||
-            (filterCategory.includes("Other") &&
-              !filterCategory.includes(d.properties.service_name)))
+          (filterCategory?.includes(d.properties.service_name) ||
+            (filterCategory?.includes("Other") &&
+              !filterCategory?.includes(d.properties.service_name)))
       );
     }
   }, [filterStatus, filterCategory, search, analysisData, imageOnly]);
@@ -727,7 +727,7 @@ function App() {
                 height: "calc(100vh)",
                 width: "calc(100vw)",
                 maxWidth: 500,
-                margin:"auto",
+                margin: "auto",
                 backgroundSize: "cover",
                 backgroundImage: `url(${
                   pointData?.properties?.media_url ||
@@ -855,7 +855,13 @@ function App() {
             </div>
             <hr />
             <div className="filter-section">
-              <p className="filter-label">Category</p>
+              <div className="x-header align-items-center">
+                <p className="filter-label">Category</p>
+                <div>
+                  <button className="deselect-btns" onClick={()=>{setFilterCategory([])}}>Deselect All</button>
+                  <button className="deselect-btns" onClick={()=>{setFilterCategory(CATEGORY_OPTIONS)}}>Select All</button>
+                </div>
+              </div>
               <Form className="filter-items">
                 {CATEGORY_OPTIONS.map((label) => {
                   return (

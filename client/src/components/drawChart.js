@@ -90,9 +90,9 @@ const drawChart = (element, data, total) => {
     .enter().append("g")
     .attr("transform", function(d,i){
       if (i<=4) {
-        return "translate(" + (-250) + "," + (i * 50 + 270)+ ")";
+        return "translate(" + (-225) + "," + (i * 55 + 270)+ ")";
       } else {
-        return "translate(" + (75) + "," + ((i-5) * 50 + 270)+ ")";
+        return "translate(" + (45) + "," + ((i-5) * 55 + 270)+ ")";
       }
     })
     .attr("class", "legend");   
@@ -106,10 +106,19 @@ const drawChart = (element, data, total) => {
   
   legendG.append("text")
     .text(function(d){
-      return  d[0]==="Rubbish and Recycling" ? "Missed Trash & Recycling Pickup" : d[0];
+      return  `${d[0]==="Rubbish and Recycling" ? "Missed Trash & Recycling Pickup" : d[0]}`;
     })
-    .style("font-size", 25)
-    .attr("y", 25)
+    .style("font-size", 20)
+    .attr("y", 15)
+    .attr("x", 55)
+    .attr("fill", '#FFFFFF');
+
+    legendG.append("text")
+    .text(function(d){
+      return  `${d[1].Total} / ${total}`;
+    })
+    .style("font-size", 18)
+    .attr("y", 40)
     .attr("x", 55)
     .attr("fill", '#FFFFFF');
     
