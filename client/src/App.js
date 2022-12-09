@@ -14,6 +14,8 @@ import {
   faShareNodes,
   faMessage,
   faCircleInfo,
+  faBarChart,
+  faMap
 } from "@fortawesome/free-solid-svg-icons";
 import "./App.css";
 import Map from "./components/Map.js";
@@ -485,7 +487,9 @@ function App() {
                   setToggleForm(true);
                 }}
               >
-                Submit a Request
+                <p>Submit a Request</p>
+                <FontAwesomeIcon icon={faMessage} className={"fa-lg"} />
+                
               </button>
               <button
                 id="splash-bot"
@@ -494,7 +498,8 @@ function App() {
                   // setDataView(true);
                 }}
               >
-                View Request Map
+                <p>View Request Map</p>
+                <FontAwesomeIcon icon={faMap} className={"fa-lg"} />
               </button>
               <button
                 id="splash-bot"
@@ -503,7 +508,8 @@ function App() {
                   setDataView(true);
                 }}
               >
-                View Request Analytics
+                <p>View Request Analytics</p>
+                <FontAwesomeIcon icon={faChartColumn} className={"fa-lg"} />
               </button>
             </div>
           </div>
