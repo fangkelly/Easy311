@@ -151,7 +151,7 @@ export default function Map({
           return colors["Other"];
         }
       },
-      lineWidthMinPixels: 3,
+      lineWidthMinPixels: 5,
       lineWidthUnits: "pixels",
       pointRadiusMinPixels: 10, // minimum point radius (px)
       radiusScale: 6,
