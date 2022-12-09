@@ -153,8 +153,8 @@ export default function Map({
       },
       lineWidthMinPixels: 3,
       lineWidthUnits: "pixels",
-      pointRadiusMinPixels: 5, // minimum point radius (px)
-      radiusScale: 4,
+      pointRadiusMinPixels: 10, // minimum point radius (px)
+      radiusScale: 6,
       getPosition: (d) => d.geometry.coordinates, // coordinates [lng, lat] for each data point
       getFillColor: [255, 255, 255, 255], // rgb color values
       opacity: 0.9, // opacity 0 to 1
