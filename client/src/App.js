@@ -165,7 +165,6 @@ function App() {
     window.history.pushState(null, "", location.href.split("?")[0]);
   }, []);
 
-
   const getPath = () => {
     let params;
     if (dataView) {
@@ -177,8 +176,8 @@ function App() {
     let path = window.location.href.split("?")[0];
     path = path.concat("?");
     path = path.concat(params);
-    return path
-  }
+    return path;
+  };
 
   useEffect(() => {
     const path = getPath();
@@ -556,11 +555,11 @@ function App() {
 
   const getShareText = () => {
     if (dataView) {
-      return `Explore 311 service request trends in ${neighborhood.properties.listname}`
+      return `Explore 311 service request trends in ${neighborhood.properties.listname}`;
     } else {
-      return `Check out this ${pointData.properties.service_name} 311 service request`
+      return `Check out this ${pointData?.properties?.service_name} 311 service request`;
     }
-  }
+  };
 
   return (
     <div className="App">
@@ -1006,16 +1005,15 @@ function App() {
               }}
             >
               <div className="backDrop-btns">
-                <button className="backDrop-btn">
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    href={`${TWEET_INTENT_URL}?text=${encodeURIComponent(
-                      getShareText()
-                    )}&url=${getPath()}`}
-                  >
-                    <FontAwesomeIcon icon={faShareNodes} color={"black"} />
-                  </a>
+                <button
+                  className="backDrop-btn"
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`${TWEET_INTENT_URL}?text=${encodeURIComponent(
+                    getShareText()
+                  )}&url=${getPath()}`}
+                >
+                  <FontAwesomeIcon icon={faShareNodes} color={"black"} />
                 </button>
                 <button
                   className="backDrop-btn"
