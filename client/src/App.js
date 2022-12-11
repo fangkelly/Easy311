@@ -554,8 +554,8 @@ function App() {
   };
 
   const getShareText = () => {
-    if (dataView) {
-      return `Explore 311 service request trends in ${neighborhood.properties.listname}`;
+    if (dataView && neighborhood) {
+      return `Explore 311 service request trends in ${neighborhood?.properties?.listname}`;
     } else {
       return `Check out this ${pointData?.properties?.service_name} 311 service request`;
     }
