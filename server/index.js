@@ -420,7 +420,7 @@ app.post("/delete_subscription", async (request, response) => {
       
       This email confirms you've been unsubscribed from ${emailMsg}. 
 
-      You can manage your subscriptions here: www.easy311.app/subscription/?id=${encrypted}.
+      You can manage your subscriptions here: www.easy311.app/?id=${encrypted}.
       
       Best, 
       Easy 311
@@ -497,7 +497,7 @@ app.post("/add_subscription", async (request, response) => {
       
       This email confirms you've been subscribed to ${emailMsg}. 
 
-      Please manage your subscriptions here: www.easy311.app/subscription/?id=${encrypted}.
+      Please manage your subscriptions here: www.easy311.app/?id=${encrypted}.
       
       Best, 
       Easy 311

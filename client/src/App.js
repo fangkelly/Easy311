@@ -651,7 +651,6 @@ function App() {
                               let newNeigh = [
                                 ...subscriptions.neighborhoods,
                               ].filter((d) => d !== n);
-                              console.log(newNeigh);
                               setSubscriptions({
                                 ...subscriptions,
                                 neighborhoods: newNeigh,
