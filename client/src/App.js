@@ -41,6 +41,8 @@ import { point, polygon } from "@turf/helpers";
 // import data
 import neighborhoods from "./data/neighborhoods.json";
 
+const TWEET_INTENT_URL = "https://twitter.com/intent/tweet";
+
 const MONTHS = {
   "01": "January",
   "02": "February",
@@ -134,8 +136,6 @@ function App() {
   const [enableHeatmap, setEnableHeatmap] = useState(true); // whether to make heatmap active or not
   const [reaction, setReactions] = useState(null); // dicitonary of reactions mapped to their corresponding count
 
-
-
   useEffect(() => {
     const location = window.location;
     const queryParams = new URLSearchParams(location.search);
@@ -165,7 +165,8 @@ function App() {
     window.history.pushState(null, "", location.href.split("?")[0]);
   }, []);
 
-  useEffect(() => {
+
+  const getPath = () => {
     let params;
     if (dataView) {
       params = `neighborhood=${neighborhood.properties.listname}`;
@@ -176,13 +177,17 @@ function App() {
     let path = window.location.href.split("?")[0];
     path = path.concat("?");
     path = path.concat(params);
+    return path
+  }
+
+  useEffect(() => {
+    const path = getPath();
     if ("undefined" !== typeof window.history.pushState) {
       window.history.replaceState(null, "", path);
     } else {
       window.location.assign(path);
     }
   }, [dataView, pointData]);
-
 
   const createDicts = (analysisData) => {
     if (analysisData) {
@@ -549,6 +554,10 @@ function App() {
     }
   };
 
+  const getShareText = () => {
+    return ("HII")
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -909,10 +918,6 @@ function App() {
                   )}
                 </div>
 
-                {/* <div className="share-btn">
-                  <FontAwesomeIcon icon={faShareNodes} />
-                </div> */}
-
                 <div
                   className="react-container"
                   style={{
@@ -998,7 +1003,15 @@ function App() {
             >
               <div className="backDrop-btns">
                 <button className="backDrop-btn">
-                  <FontAwesomeIcon icon={faShareNodes} color={"black"} />
+                  <a
+                    target="_blank"
+                    rel="noreferrer"
+                    href={`${TWEET_INTENT_URL}?text=${encodeURIComponent(
+                      getShareText()
+                    )}&url=${getPath()}`}
+                  >
+                    <FontAwesomeIcon icon={faShareNodes} color={"black"} />
+                  </a>
                 </button>
                 <button
                   className="backDrop-btn"
