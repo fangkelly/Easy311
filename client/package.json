@@ -26,7 +26,8 @@
     "@turf/center": "6.5.0",
     "d3":"7.6.1",
     "browser-image-compression":"2.0.0",
-    "ajax":"0.0.4"
+    "ajax":"0.0.4",
+    "react-router-dom":"6.4.5"
   },
   "scripts": {
     "start": "react-scripts start",

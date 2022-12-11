@@ -13,6 +13,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const commentModel = require("../models/CommentModel");
 const reactionModel = require("../models/ReactionModel");
+const subscriptionModel = require("../models/SubscriptionModel");
 const Twit = require("twit");
 const app = express();
 
@@ -21,7 +22,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const twilAccount = process.env.TWILIO_ACCOUNT_SID;
 const twilAuth = process.env.TWILIO_AUTH_TOKEN;
-const twilClient = require('twilio')(twilAccount, twilAuth);
+const twilClient = require("twilio")(twilAccount, twilAuth);
 
 // Database connection
 mongoose.connect(
@@ -185,7 +186,7 @@ app.post("/write_sheets", async (request, res) => {
     );
 
     const msg = {
-      to: "fangk@mit.edu", // Change to your recipient
+      to: "easy311@mit.edu", // Change to your recipient
       from: "easy311@mit.edu", // Change to your verified sender
       subject: "New Easy 311 Request Made",
       text: `Hello! 
@@ -209,7 +210,6 @@ app.post("/write_sheets", async (request, res) => {
       `,
     };
 
-
     // sgMail
     //   .send(msg)
     //   .then(() => {
@@ -223,10 +223,14 @@ app.post("/write_sheets", async (request, res) => {
       const msg_2 = {
         to: `${request.body.email}`, // Change to your recipient
         from: `easy311@mit.edu`, // Change to your verified sender
-        subject: `Thank you for your Easy 311 Submission, ${request.body.name?request.body.name:''}`,
+        subject: `Thank you for your Easy 311 Submission, ${
+          request.body.name ? request.body.name : ""
+        }`,
         text: `
 
-        Thank you for your Easy 311 Submission, ${request.body.name?request.body.name:''}!
+        Thank you for your Easy 311 Submission, ${
+          request.body.name ? request.body.name : ""
+        }!
 
         Here is what we received from you:
             Name: ${request.body.name}
@@ -245,15 +249,14 @@ app.post("/write_sheets", async (request, res) => {
       };
 
       sgMail
-      .send(msg_2)
-      .then(() => {
-        console.log("Email sent");
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-
-    } 
+        .send(msg_2)
+        .then(() => {
+          console.log("Email sent");
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
 
     // if (request.body.phone) {
     //   twilClient.messages
@@ -352,6 +355,99 @@ app.get("/comments", async (request, response) => {
   });
 });
 
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+
+
+app.get("/get_subscriptions", async (request, response) => {
+  callback_subs = (c) => {
+    return response.send(c);
+  };
+
+
+  subscriptionModel.findOne({ encrypted: request.query.id }).exec((err, res) => {
+    if (err) {
+      console.log(err);
+      return response.status(500).send(err);
+    } else {
+      return callback_subs(res);
+    }
+  });
+});
+
+// POST add a new subscription to the database
+app.post("/add_subscription", async (request, response) => {
+  var myCryptor = new cryptorjs(ENCRYPTION_KEY);
+
+  const email = request.body.email;
+  const subType = request.body.subType;
+  const subTo = request.body.subTo;
+
+  var cryptorjs = require("cryptorjs");
+  var encrypted = myCryptor.encode(email);
+
+  try {
+    if (subType === "neighborhoods") {
+      db.collection("subscriptions").updateOne(
+        { email: email },
+        {
+          $addToSet: { neighborhoods: subTo, encrypted: encrypted },
+        },
+        { upsert: true }
+      );
+    } else {
+      db.collection("subscriptions").updateOne(
+        { email: email },
+        {
+          $addToSet: { requests: subTo },
+          $set: {
+            encrypted: encrypted,
+          },
+        },
+        { upsert: true }
+      );
+    }
+
+    let emailMsg = "";
+    if (subType === "neighborhoods") {
+      emailMsg = `receive update emails regarding the status of service request ${subTo}`;
+    } else {
+      emailMsg = `receive update emails regarding the status updates of service requests in ${subTo}`;
+    }
+
+    const msg = {
+      to: email, // Change to your recipient
+      from: "easy311@mit.edu", // Change to your verified sender
+      subject: "New Easy 311 Subscription Made!",
+      text: `Hello! 
+      
+      This email confirms you've been subscribed to ${emailMsg}. 
+
+      Please manage your subscriptions here: www.easy311.app/subscription/?id=${encrypted}.
+      
+      Best, 
+      Easy 311
+      `,
+    };
+
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log("Email sent");
+        console.log(encrypted, typeof encrypted);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    response.status(200).send("success");
+    console.log("success!");
+  } catch (error) {
+    console.log("ERROR ", error);
+    response.status(500).send(error);
+  }
+});
+
 // Handle GET requests to /data route
 app.get("/analysis_data", async (req, res, next) => {
   const timeMap = {
@@ -425,7 +521,7 @@ app.get("/philly", async (req, res, next) => {
 });
 
 app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "../client/build", "index.html"));
+  res.sendFile(path.resolve(__dirname, "../client", "index.html"));
 });
 
 app.listen(PORT, () => {

@@ -1,23 +1,29 @@
 import React, { useEffect, useState, useCallback } from "react";
-import DropDown from "./DropDown";
 import axios from "axios";
+
+// import icons
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMinus,
   faCaretDown,
   faCaretUp,
-  faChevronDown,
   faCircle,
   faXmark,
+  faBell,
 } from "@fortawesome/free-solid-svg-icons";
 
+// import turf packages
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { point, polygon } from "@turf/helpers";
+
+//import data
 import neighborhoods from "../data/neighborhoods.json";
 
+// import components
 import DonutChart from "./DonutChart";
-import { timer } from "d3-timer";
+import DropDown from "./DropDown";
 
+// map constants
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
 const PHL_BBOX = "-75.353877, 39.859018, -74.92068962905012, 40.14958609050669";
@@ -37,35 +43,26 @@ let CATEGORY_OPTIONS = [
 
 let DEPARTMENTS = {
   "Illegal Dumping": "Streets Department",
-  "Rubbish and Recycling" : "Streets Department",
-  "Abandoned Vehicle" : "Police Department",
-  "Pothole Repair" : "Streets Department",
-  "Graffiti Removal" : "Community Life Improvement Program",
-  "Vacant Lots" : "License & Inspections",
-  "Street Light Outage" : "Streets Department",
-  "Property Maintenance" : "License & Inspections",
+  "Rubbish and Recycling": "Streets Department",
+  "Abandoned Vehicle": "Police Department",
+  "Pothole Repair": "Streets Department",
+  "Graffiti Removal": "Community Life Improvement Program",
+  "Vacant Lots": "License & Inspections",
+  "Street Light Outage": "Streets Department",
+  "Property Maintenance": "License & Inspections",
   "Street Trees": "Streets Department",
-  "Other": "Various",
-}
+  Other: "Various",
+};
 
-const TIME_RANGE = [
-  // "All time",
-  // "This year",
-  "Last 30 days",
-  "Last 7 days",
-  "Today",
-];
-
+const TIME_RANGE = ["Last 30 days", "Last 7 days", "Today"];
 
 const compareTime = {
   "Last 30 days": "the month before",
   "Last 7 days": "the week before",
-  "Today": "the day before",
-}
+  Today: "the day before",
+};
 
-
-const NEIGHBORHOODS = neighborhoods;
-
+// given a point, return neighborhood object it falls in
 const pointInNeighborhood = (coord) => {
   for (let i = 0; i < neighborhoods.features.length; i++) {
     if (
@@ -158,14 +155,9 @@ export default function DataView({
   setTimeRange,
   neighborhood,
   setNeighborhood,
-  coordDict,
-  neighborhoodDict,
   stats,
-  setDataView
+  setDataView,
 }) {
-
-
-
   function sortCategory(array) {
     const nans = array.filter(
       (a) => !Object.keys(stats.serviceStats).includes(a)
@@ -182,11 +174,12 @@ export default function DataView({
   }
 
   const getAverageTime = (category) => {
-
     if (stats.serviceStats[category].Closed < 1) {
       return "NA";
     } else {
-      let timeRes_sec = stats.serviceStats[category].running_time / (stats.serviceStats[category].Closed * 1000)
+      let timeRes_sec =
+        stats.serviceStats[category].running_time /
+        (stats.serviceStats[category].Closed * 1000);
       if (timeRes_sec > 604800) {
         return `${(timeRes_sec / 604800).toFixed(2)} weeks`;
       } else if (timeRes_sec > 86400) {
@@ -197,9 +190,7 @@ export default function DataView({
         return `${(timeRes_sec / 60).toFixed(2)} minutes`;
       }
     }
-
-
-  }
+  };
 
   const handleScroll = () =>
     (document.getElementById("tooltip").style.display = "none");
@@ -219,7 +210,11 @@ export default function DataView({
       return (
         <div className="flexCol-sm" key={category}>
           <div className="flexRow">
-            <p className="font-16">{category==="Rubbish and Recycling" ? "Missed Trash & Recycling Pickup" : category}</p>
+            <p className="font-16">
+              {category === "Rubbish and Recycling"
+                ? "Missed Trash & Recycling Pickup"
+                : category}
+            </p>
             <p className="font-16">
               {perc_resolved > -1 ? `${perc_resolved}%` : "NA"}
             </p>
@@ -238,16 +233,19 @@ export default function DataView({
               }}
             ></div>
           </div>
-          <p className="nor-sub"> Average Closed Time: {getAverageTime(category)}</p>
-          <p className="nor-sub"> Agency Responsible: {DEPARTMENTS[category]}</p>
+          <p className="nor-sub">
+            {" "}
+            Average Closed Time: {getAverageTime(category)}
+          </p>
+          <p className="nor-sub">
+            {" "}
+            Agency Responsible: {DEPARTMENTS[category]}
+          </p>
         </div>
       );
     });
     return pb;
   };
-
-
-
 
   useEffect(() => {
     const dataContainer = document.getElementById("data-container");
@@ -261,19 +259,102 @@ export default function DataView({
     };
   }, []);
 
- 
+  const [toggleSubscribe, setToggleSubscribe] = useState(false);
+  const [subEmail, setSubEmail] = useState("");
+
+  const handleSubscribe = (subType, subTo) => {
+    const email = subEmail;
+    setSubEmail("");
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (re.test(email)) {
+
+      const data = {
+        email: email,
+        subType: subType,
+        subTo: subTo
+      }
+
+      fetch("/add_subscription", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((res) => {
+          console.log(res);
+        })
+        .then((d) => console.log(d));
+    } else {
+      // if not a valid email
+      document.getElementById("sub-input").style.border = "1px solid red";
+    }
+  };
 
   return (
     <div className="card card-style">
       <div className="card-container" id={"data-container"}>
         <div className="data-section">
-          <div className="x-header">
-          <p className="nor-name">
-            {neighborhood ? neighborhood?.properties?.listname : "Philadelphia"}
-          </p>
+          <div className="x-header position-relative">
+            <p className="nor-name position-relative">
+              {neighborhood
+                ? neighborhood?.properties?.listname
+                : "Philadelphia"}{" "}
+              &nbsp;
+              <FontAwesomeIcon
+                icon={faBell}
+                className={"fa-2xs"}
+                onClick={() => {
+                  setToggleSubscribe(!toggleSubscribe);
+                }}
+              />
+            </p>
 
-          <FontAwesomeIcon icon={faXmark} color={"#A1A1A1"}
-                  size={"lg"} onClick={()=>{setDataView(false)}}/>
+            <FontAwesomeIcon
+              icon={faXmark}
+              color={"#A1A1A1"}
+              size={"lg"}
+              onClick={() => {
+                setDataView(false);
+              }}
+            />
+            {toggleSubscribe && (
+              <div className="subscribe-container">
+                <p>
+                  Would you like to be notified of service requests made in the{" "}
+                  {neighborhood?.properties?.listname} area?
+                </p>
+                <input
+                  id="sub-input"
+                  type="text"
+                  placeholder="Your email here"
+                  value={subEmail}
+                  onChange={(e) => {
+                    document.getElementById("sub-input").style.border = "none";
+                    setSubEmail(e.target.value);
+                  }}
+                />
+                <div className={"row-btn-container"}>
+                  <button
+                    className={"primary-btn-blue"}
+                    onClick={() => {
+                      handleSubscribe("neighborhoods", neighborhood?.properties?.listname);
+                    }}
+                  >
+                    Subscribe
+                  </button>
+                  <button
+                    className={"primary-btn-gray"}
+                    onClick={() => {
+                      setToggleSubscribe(false);
+                    }}
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="data-section">
@@ -283,9 +364,25 @@ export default function DataView({
               {stats?.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
             </p>
 
-
-            <div className={`${stats.trend<0?"negative-trend":stats.trend>0?"positive-trend":"neutral-trend"} trend`}>
-              <FontAwesomeIcon icon={stats.trend>0?faCaretUp:stats.trend<0?faCaretDown:faMinus} size={"2xl"} />
+            <div
+              className={`${
+                stats.trend < 0
+                  ? "negative-trend"
+                  : stats.trend > 0
+                  ? "positive-trend"
+                  : "neutral-trend"
+              } trend`}
+            >
+              <FontAwesomeIcon
+                icon={
+                  stats.trend > 0
+                    ? faCaretUp
+                    : stats.trend < 0
+                    ? faCaretDown
+                    : faMinus
+                }
+                size={"2xl"}
+              />
               <p className="nor-trend">{stats.trend}%</p>
             </div>
           </div>
@@ -302,9 +399,9 @@ export default function DataView({
               items={TIME_RANGE}
             />
           </div>
-            {stats && (
-              <DonutChart total={stats?.total} data={stats?.serviceStats} />
-            )}
+          {stats && (
+            <DonutChart total={stats?.total} data={stats?.serviceStats} />
+          )}
         </div>
         <div className="data-section">
           <p className="data-title">Requests Completed</p>

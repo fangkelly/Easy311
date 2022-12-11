@@ -1,23 +1,29 @@
 import React, { useEffect, useMemo, useState } from "react";
-import SubmissionForm from "./components/SubmissionForm";
-import axios from "axios";
+import "./App.css";
+
+// import logos
 import logo from "./icons/logo.svg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChartColumn,
   faXmark,
-  faEllipsis,
   faChevronDown,
   faLayerGroup,
-  faPlus,
   faCommentDots,
   faShareNodes,
   faMessage,
   faCircleInfo,
-  faBarChart,
-  faMap
+  faMap,
+  faBell,
 } from "@fortawesome/free-solid-svg-icons";
-import "./App.css";
+import emoji_1 from "./icons/emoji_1.svg";
+import emoji_2 from "./icons/emoji_2.svg";
+import emoji_3 from "./icons/emoji_3.svg";
+import emoji_4 from "./icons/emoji_4.svg";
+import emoji_5 from "./icons/emoji_5.svg";
+
+// import components
+import SubmissionForm from "./components/SubmissionForm";
 import Map from "./components/Map.js";
 import DataView from "./components/DataView";
 import Sheet from "react-modal-sheet";
@@ -28,18 +34,13 @@ import {
 } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
 
+// import turf packages
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { point, polygon } from "@turf/helpers";
 
+// import data
 import neighborhoods from "./data/neighborhoods.json";
-import { timer } from "d3-timer";
-
-import emoji_1 from "./icons/emoji_1.svg";
-import emoji_2 from "./icons/emoji_2.svg";
-import emoji_3 from "./icons/emoji_3.svg";
-import emoji_4 from "./icons/emoji_4.svg";
-import emoji_5 from "./icons/emoji_5.svg";
-import emoji_6 from "./icons/emoji_6.svg";
+import { analytics } from "googleapis/build/src/apis/analytics";
 
 const MONTHS = {
   "01": "January",
@@ -56,7 +57,9 @@ const MONTHS = {
   12: "December",
 };
 
+// set APP constants
 const STATUS_OPTIONS = ["Open", "Closed"];
+
 const CATEGORY_OPTIONS = [
   "Illegal Dumping",
   "Rubbish and Recycling",
@@ -70,31 +73,9 @@ const CATEGORY_OPTIONS = [
   "Other",
 ];
 
-const TIME_RANGE_DAYS = {
-  "All time": 36525,
-  "This year": 365,
-  "Last 30 days": 30,
-  "Last 7 days": 7,
-  Today: 1,
-};
-
 const CATEGORY_MINUS_OTHER = CATEGORY_OPTIONS.filter(
   (category) => category != "Other"
 );
-
-const NEIGHBORHOODS = neighborhoods;
-
-const validateTime = (datetime, timeRange) => {
-  let date = new Date(datetime);
-  let currDate = new Date();
-
-  const diff = Date.parse(currDate) - Date.parse(date);
-  if (diff <= TIME_RANGE_DAYS[timeRange] * 86400 * 1000) {
-    return true;
-  } else {
-    return false;
-  }
-};
 
 const convertDate = (datetime) => {
   if (datetime) {
@@ -128,44 +109,32 @@ const convertDate = (datetime) => {
   return;
 };
 
-/**
- * App.
- * @constructor
- * @param {object[]} data - 311 service requests displayed on map.
- * @param {boolean} dataView - True if data analysis panel open.
- * @param {object} pointData - Single 311 service request.
- * @param {boolean} toggleFilter - Whether the filter is displayed or not.
- * @param {string[]} filterStatus - What status the user has filtered by.
- * @@param {string[]} filterCategory - What categories the user has filtered by.
- * @param {string} search - What the current search query is.
- */
-
 function App() {
-  // const [data, setData] = useState(null);
-  const [analysisData, setAnalysisData] = useState(null);
-  const [dataView, setDataView] = useState(false);
-  const [toggleFilter, setToggleFilter] = useState(false);
-  const [pointData, setPointData] = useState(false);
-  const [filterStatus, setFilterStatus] = useState(STATUS_OPTIONS);
-  const [filterCategory, setFilterCategory] = useState(CATEGORY_OPTIONS);
-  const [search, setSearch] = useState("");
-  const [timeRange, setTimeRange] = useState("Last 7 days");
-  const [neighborhood, setNeighborhood] = useState(null);
-  const [stats, setStats] = useState(null);
-  const [toggleForm, setToggleForm] = useState(false);
-  const [toggleSplash, setToggleSplash] = useState(true);
-  const [imageOnly, setImageOnly] = useState(false);
-
+  const [analysisData, setAnalysisData] = useState(null); // data used for DataView.js
+  const [dataView, setDataView] = useState(false); // whether the data view is toggled or not
+  const [toggleFilter, setToggleFilter] = useState(false); // whether the filter panel is toggled or not
+  const [pointData, setPointData] = useState(false); // request data passed in to the bottom sheet when request is selected by user
+  const [filterStatus, setFilterStatus] = useState(STATUS_OPTIONS); // list of what statuses the user wants visualized on map Open or Closed
+  const [filterCategory, setFilterCategory] = useState(CATEGORY_OPTIONS); // list of what categories of requests the user wants visualized
+  const [search, setSearch] = useState(""); // user's current search query
+  const [timeRange, setTimeRange] = useState("Last 7 days"); // what time range the user has selected from the drop down (see requests from x days back)
+  const [neighborhood, setNeighborhood] = useState(null); // what neighborhoos the user has selected to view
+  const [stats, setStats] = useState(null); // calculated statistics of the neighborhood
+  const [toggleForm, setToggleForm] = useState(false); // whether the chatbot is toggled or not
+  const [toggleSplash, setToggleSplash] = useState(true); // whether the splash page is toggled or not
+  const [imageOnly, setImageOnly] = useState(false); // whether the user wants to only visualize requests with images or not
   let emptySet = new Set();
-
-  // keeps track of all points we've seen and processed
-  const [points, setPoints] = useState(emptySet);
-  const [trendData, setTrendData] = useState(null);
-
+  const [points, setPoints] = useState(emptySet); // keeps track of all points we've seen and processed
+  const [trendData, setTrendData] = useState(null); // data to calculate trend statistic in data view
   const [dataDict, setDataDict] = useState({
     coordDict: {},
     neighborhoodDict: {},
   });
+  const [comments, setComments] = useState(null); // list of comments to render on bottom sheet
+  const [commentSection, setCommentSection] = useState(false); // whether to show comment section or not
+  const [enableHeatmap, setEnableHeatmap] = useState(true); // whether to make heatmap active or not
+  const [reaction, setReactions] = useState(null); // dicitonary of reactions mapped to their corresponding count
+
 
   const createDicts = (analysisData) => {
     if (analysisData) {
@@ -198,10 +167,7 @@ function App() {
     }
   };
 
-  const [comments, setComments] = useState(null);
-  const [commentSection, setCommentSection] = useState(false);
-  const [enableHeatmap, setEnableHeatmap] = useState(true);
-
+  // get comments for specific service request
   useEffect(() => {
     if (pointData) {
       fetch(`/comments?id=${pointData.properties.service_request_id}`)
@@ -214,8 +180,7 @@ function App() {
     }
   }, [pointData]);
 
-  const [reaction, setReactions] = useState(null);
-
+  // get reactions for specific service request
   useEffect(() => {
     if (pointData) {
       fetch(`/reactions?id=${pointData.properties.service_request_id}`)
@@ -228,16 +193,20 @@ function App() {
     }
   }, [pointData]);
 
+  // always default to timeline of status updates everytime bottom sheet opens
   useEffect(() => {
     setCommentSection(false);
+    setToggleSubscribe(false);
   }, [pointData]);
 
+  // get data for previous 2 * {timeRange} amount of time
   useEffect(() => {
     fetch(`/analysis_data?time=${timeRange}&trend=true`)
       .then((res) => res.json())
       .then((data) => setTrendData(data));
   }, [timeRange]);
 
+  // get data for previous {timeRange} amount of time
   useEffect(() => {
     fetch(`/analysis_data?time=${timeRange}&trend=${false}`)
       .then((res) => res.json())
@@ -248,6 +217,25 @@ function App() {
     createDicts(analysisData);
   }, [analysisData]);
 
+  useEffect(()=>{
+    const location = window.location;
+    const queryParams = new URLSearchParams(location.search);
+    for (let pair of queryParams.entries()) {
+      if (pair[0] === "req") {
+        console.log(pair[1])
+      } else if (pair[0] === "neighborhood") {
+        console.log(analysisData);
+        // setNeighborhood(stats.neighborhoodDict[pair[1]])
+        // setToggleSplash(false);
+        // setDataView(true);
+        // console.log(analysisData);
+        // createDicts(analysisData);
+        // console.log(dataDict);
+      }
+    }
+  }, [])
+
+  // filter data for visualization
   const data = useMemo(() => {
     if (analysisData) {
       return analysisData.filter(
@@ -262,6 +250,7 @@ function App() {
     }
   }, [filterStatus, filterCategory, search, analysisData, imageOnly]);
 
+  // create statistics
   useEffect(() => {
     let serviceStats = {};
     let total = 0;
@@ -368,8 +357,9 @@ function App() {
     }
   }, [dataDict.neighborhoodDict, neighborhood]);
 
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(""); // holds current typed comment
 
+  // submit comment
   const handleKeyUp = async (e) => {
     const code = e.keyCode;
     if (code === 13 && comment) {
@@ -413,6 +403,7 @@ function App() {
     }
   };
 
+  // add reaction
   const addReaction = (r) => {
     const data = {
       id: pointData.properties.service_request_id,
@@ -449,6 +440,39 @@ function App() {
       .catch((err) => {
         console.log("error");
       });
+  };
+
+  const [toggleSubscribe, setToggleSubscribe] = useState(false);
+  const [subEmail, setSubEmail] = useState("");
+
+  const handleSubscribe = (subType, subTo) => {
+    const email = subEmail;
+    setSubEmail("");
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (re.test(email)) {
+
+      const data = {
+        email: email,
+        subType: subType,
+        subTo: subTo
+      }
+
+      fetch("/add_subscription", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((res) => {
+          console.log(res);
+        })
+        .then((d) => console.log(d));
+    } else {
+      // if not a valid email
+      document.getElementById("sub-input").style.border = "1px solid red";
+    }
   };
 
   return (
@@ -489,7 +513,6 @@ function App() {
               >
                 <p>Submit a Request</p>
                 <FontAwesomeIcon icon={faMessage} className={"fa-lg"} />
-                
               </button>
               <button
                 id="splash-bot"
@@ -547,8 +570,51 @@ function App() {
                 className="bottomSheet"
                 style={{ minHeight: commentSection ? "65vh" : "30vh" }}
               >
-                <p className="backDrop-sub bold">
+                <p className="backDrop-sub bold" style={{alignItems:"center", columnGap:"1rem", display:"flex", position:"relative"}}>
                   {pointData?.properties?.service_name}
+                  
+                  <FontAwesomeIcon
+                    icon={faBell}
+                    className={"fa-lg"}
+                    onClick={() => {
+                      setToggleSubscribe(!toggleSubscribe);
+                    }}
+                  />
+                  {toggleSubscribe && (
+              <div className="subscribe-container" style={{top:30}}>
+                <p>
+                  Would you like to be notified of updates made to this service request?
+                </p>
+                <input
+                  id="sub-input"
+                  type="text"
+                  placeholder="Your email here"
+                  value={subEmail}
+                  onChange={(e) => {
+                    document.getElementById("sub-input").style.border = "none";
+                    setSubEmail(e.target.value);
+                  }}
+                />
+                <div className={"row-btn-container"}>
+                  <button
+                    className={"primary-btn-blue"}
+                    onClick={() => {
+                      handleSubscribe("requestss", pointData?.properties?.service_request_id);
+                    }}
+                  >
+                    Subscribe
+                  </button>
+                  <button
+                    className={"primary-btn-gray"}
+                    onClick={() => {
+                      setToggleSubscribe(false);
+                    }}
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
+            )}
                 </p>
                 {!commentSection ? (
                   <>
@@ -866,8 +932,22 @@ function App() {
               <div className="x-header align-items-center">
                 <p className="filter-label">Category</p>
                 <div>
-                  <button className="deselect-btns" onClick={()=>{setFilterCategory([])}}>Deselect All</button>
-                  <button className="deselect-btns" onClick={()=>{setFilterCategory(CATEGORY_OPTIONS)}}>Select All</button>
+                  <button
+                    className="deselect-btns"
+                    onClick={() => {
+                      setFilterCategory([]);
+                    }}
+                  >
+                    Deselect All
+                  </button>
+                  <button
+                    className="deselect-btns"
+                    onClick={() => {
+                      setFilterCategory(CATEGORY_OPTIONS);
+                    }}
+                  >
+                    Select All
+                  </button>
                 </div>
               </div>
               <Form className="filter-items">

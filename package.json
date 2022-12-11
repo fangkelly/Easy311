@@ -27,6 +27,7 @@
     "dotenv":"16.0.3",
     "googleapis":"109.0.1",
     "@sendgrid/mail":"7.7.0",
-    "twilio":"3.83.4"
+    "twilio":"3.83.4",
+    "cryptorjs":"3.0.0"
   }
 }
