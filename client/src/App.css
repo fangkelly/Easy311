@@ -963,6 +963,21 @@ input::file-selector-button,
 }
 
 
+.sub-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sub-link {
+  color: white;
+  cursor: pointer;
+}
+
+.sub-link:hover {
+  color: var(--blue);
+}
+
+
 
 
 /* UTIl */

@@ -40,7 +40,6 @@ import { point, polygon } from "@turf/helpers";
 
 // import data
 import neighborhoods from "./data/neighborhoods.json";
-import { analytics } from "googleapis/build/src/apis/analytics";
 
 const MONTHS = {
   "01": "January",
@@ -217,23 +216,6 @@ function App() {
     createDicts(analysisData);
   }, [analysisData]);
 
-  useEffect(()=>{
-    const location = window.location;
-    const queryParams = new URLSearchParams(location.search);
-    for (let pair of queryParams.entries()) {
-      if (pair[0] === "req") {
-        console.log(pair[1])
-      } else if (pair[0] === "neighborhood") {
-        console.log(analysisData);
-        // setNeighborhood(stats.neighborhoodDict[pair[1]])
-        // setToggleSplash(false);
-        // setDataView(true);
-        // console.log(analysisData);
-        // createDicts(analysisData);
-        // console.log(dataDict);
-      }
-    }
-  }, [])
 
   // filter data for visualization
   const data = useMemo(() => {
@@ -356,6 +338,42 @@ function App() {
       });
     }
   }, [dataDict.neighborhoodDict, neighborhood]);
+
+  const getRequest = (id) => {
+
+    // const callback = (d)=>{
+    //   console.log(d)
+    //   return d}
+    fetch(`/get_req?id=${id}`)
+        .then((res) => {
+          if (res) return res.json();
+        })
+        .then((d) => setPointData(d[0]));
+    
+  }
+
+
+  useEffect(()=>{
+    const location = window.location;
+    const queryParams = new URLSearchParams(location.search);
+    for (let pair of queryParams.entries()) {
+      setToggleSplash(false);
+      if (pair[0] === "req") {
+        const reqData = getRequest(pair[1])
+      } else if (pair[0] === "neighborhood") {
+        setDataView(true);
+
+        for (const neighborhood of neighborhoods.features) {
+          if (neighborhood.properties.listname === pair[1]) {
+            setNeighborhood(neighborhood);
+            break
+          }
+        }
+      }
+      window.history.pushState(null, "", location.href.split("?")[0]);
+
+    }
+  }, [stats])
 
   const [comment, setComment] = useState(""); // holds current typed comment
 

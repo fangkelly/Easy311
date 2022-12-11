@@ -375,15 +375,88 @@ app.get("/get_subscriptions", async (request, response) => {
   });
 });
 
+
+// POST delete a subscription from the database
+app.post("/delete_subscription", async (request, response) => {
+  const encrypted = request.body.encrypted;
+  const subType = request.body.subType;
+  const subTo = request.body.subTo;
+
+  try {
+    if (subType === "neighborhoods") {
+      db.collection("subscriptions").updateOne(
+        { encrypted: encrypted },
+        {
+          $pull: { neighborhoods: { $in: [ subTo ] }}
+        },
+        { upsert: true }
+      );
+    } else {
+      db.collection("subscriptions").updateOne(
+        { encrypted: encrypted },
+        {
+          $pull: { requests: { $in: [ subTo ] }}
+        },
+        { upsert: true }
+      );
+    }
+
+    var cryptorjs = require('cryptorjs');
+    var myCryptor = new cryptorjs(ENCRYPTION_KEY);
+    var email = myCryptor.decode(encrypted);
+
+    let emailMsg = "";
+    if (subType === "neighborhoods") {
+      emailMsg = `receiving update emails regarding the status of service request ${subTo}`;
+    } else {
+      emailMsg = `receiving update emails regarding the status updates of service requests in ${subTo}`;
+    }
+
+    const msg = {
+      to: email, // Change to your recipient
+      from: "easy311@mit.edu", // Change to your verified sender
+      subject: "Easy 311 Subscription Removed!",
+      text: `Hello! 
+      
+      This email confirms you've been unsubscribed from ${emailMsg}. 
+
+      You can manage your subscriptions here: www.easy311.app/subscription/?id=${encrypted}.
+      
+      Best, 
+      Easy 311
+      `,
+    };
+
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log("Email sent");
+        console.log(encrypted, typeof encrypted);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    response.status(200).send("success");
+    console.log("success!");
+  } catch (error) {
+    console.log("ERROR ", error);
+    response.status(500).send(error);
+  }
+})
+
+
+
 // POST add a new subscription to the database
 app.post("/add_subscription", async (request, response) => {
+  
+  var cryptorjs = require('cryptorjs');
   var myCryptor = new cryptorjs(ENCRYPTION_KEY);
 
   const email = request.body.email;
   const subType = request.body.subType;
   const subTo = request.body.subTo;
 
-  var cryptorjs = require("cryptorjs");
   var encrypted = myCryptor.encode(email);
 
   try {
@@ -391,7 +464,8 @@ app.post("/add_subscription", async (request, response) => {
       db.collection("subscriptions").updateOne(
         { email: email },
         {
-          $addToSet: { neighborhoods: subTo, encrypted: encrypted },
+          $addToSet: { neighborhoods: subTo },
+          $set : {encrypted: encrypted}
         },
         { upsert: true }
       );
@@ -410,9 +484,9 @@ app.post("/add_subscription", async (request, response) => {
 
     let emailMsg = "";
     if (subType === "neighborhoods") {
-      emailMsg = `receive update emails regarding the status of service request ${subTo}`;
+      emailMsg = `receive update emails regarding the status of service requests made in ${subTo}`;
     } else {
-      emailMsg = `receive update emails regarding the status updates of service requests in ${subTo}`;
+      emailMsg = `receive update emails regarding the status updates of service requests #${subTo}`;
     }
 
     const msg = {
@@ -448,6 +522,25 @@ app.post("/add_subscription", async (request, response) => {
   }
 });
 
+
+
+app.get("/get_req", async (req, res, next) => {
+  try {
+    axios
+        .get(
+          `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE service_request_id = ${parseInt(req.query.id)}`
+        )
+        .then((response) =>
+          res.json(response.data.features.filter((d) => d.geometry !== null))
+        )
+        .catch((error) => {
+          console.log(error);
+        });
+  } catch (err) {
+    next(err);
+  }}
+)
+
 // Handle GET requests to /data route
 app.get("/analysis_data", async (req, res, next) => {
   const timeMap = {
@@ -467,9 +560,7 @@ app.get("/analysis_data", async (req, res, next) => {
       axios
         .get(
           // TODO: filter by search not working : status LIKE '% ${search} %'
-          `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE 
-        requested_datetime >= current_date - ${time} AND service_name != 'Information Request'
-        `
+          `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE requested_datetime >= current_date - ${time} AND service_name != 'Information Request'`
         )
         .then((response) =>
           res.json(response.data.features.filter((d) => d.geometry !== null))

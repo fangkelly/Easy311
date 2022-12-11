@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
+import { faCircleInfo, faXmark } from "@fortawesome/free-solid-svg-icons";
 import logo from "./icons/logo.svg";
-import { set } from "mongoose";
 
 export default function Subscription() {
   const navigate = useNavigate();
@@ -37,6 +36,25 @@ export default function Subscription() {
       .then((d) => setSubscriptions(d));
   };
 
+  const deleteSubscription = (encrypted, subType, subTo) => {
+    const data = {
+      encrypted: encrypted,
+      subType: subType,
+      subTo: subTo
+    }
+    fetch("/delete_subscription", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+    .then((r) => {
+      r.json();
+    });
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -61,26 +79,78 @@ export default function Subscription() {
       <div id={"map-container"}>
         <div className="subscription-page">
           <p className="splash-heading">My Subscriptions</p>
-          {subscriptions && 
+          {subscriptions && (
             <>
               <div className="data-section">
                 <p className={"data-title"}>Neighborhoods</p>
-                <div className="">
+                <div className="sub-list">
                   {subscriptions.neighborhoods.map((n) => {
-                    return <p onClick={()=>{navigate(`/?neighborhood=${n}`);}}>{n}</p>;
+                    return (
+                      <div>
+                        <FontAwesomeIcon
+                          icon={faXmark}
+                          onClick={() => {
+                            deleteSubscription(id, "neighborhoods", n);
+                            let newNeigh = [
+                              ...subscriptions.neighborhoods,
+                            ].filter((d) => d !== n);
+                            console.log(newNeigh);
+                            setSubscriptions({
+                              ...subscriptions,
+                              neighborhoods: newNeigh,
+                            });
+                          }}
+                        />{" "}
+                        &nbsp;
+                        <a
+                          className="sub-link"
+                          onClick={() => {
+                            navigate(`/?neighborhood=${n}`);
+                          }}
+                        >
+                          {n}
+                        </a>
+                      </div>
+                    );
                   })}
                 </div>
               </div>
               <div className="data-section">
                 <p className={"data-title"}>Service Requests</p>
-                <div className="">
+                <div className="sub-list">
                   {subscriptions.requests.map((r) => {
-                    return <p onClick={()=>{navigate(`/?req=${r}`);}}>{r}</p>;
+                    return (
+                      <div>
+                        <FontAwesomeIcon
+                          icon={faXmark}
+                          onClick={() => {
+                            deleteSubscription(id, "requests", r);
+                            let newReqs = [...subscriptions.requests].filter(
+                              (d) => d !== r
+                            );
+                            console.log(newReqs);
+                            setSubscriptions({
+                              ...subscriptions,
+                              requests: newReqs,
+                            });
+                          }}
+                        />{" "}
+                        &nbsp;
+                        <a
+                          className="sub-link"
+                          onClick={() => {
+                            navigate(`/?req=${r}`);
+                          }}
+                        >
+                          {r}
+                        </a>
+                      </div>
+                    );
                   })}
                 </div>
               </div>
             </>
-          }
+          )}
         </div>
       </div>
     </div>
