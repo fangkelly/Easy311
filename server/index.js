@@ -210,14 +210,14 @@ app.post("/write_sheets", async (request, res) => {
       `,
     };
 
-    // sgMail
-    //   .send(msg)
-    //   .then(() => {
-    //     console.log("Email sent");
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //   });
+    sgMail
+      .send(msg)
+      .then(() => {
+        console.log("Email sent");
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
     if (request.body.email) {
       const msg_2 = {
