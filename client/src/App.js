@@ -33,6 +33,7 @@ import {
   VerticalTimelineElement,
 } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
+import Subscription from "./Subscription";
 
 // import turf packages
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
@@ -134,6 +135,18 @@ function App() {
   const [enableHeatmap, setEnableHeatmap] = useState(true); // whether to make heatmap active or not
   const [reaction, setReactions] = useState(null); // dicitonary of reactions mapped to their corresponding count
 
+  useEffect(() => {
+    const location = window.location;
+    const queryParams = new URLSearchParams(location.search);
+    let id;
+    for (let pair of queryParams.entries()) {
+      if (pair[0] === "id") {
+        id = pair[1];
+      }
+    }
+    console.log("ID ", id);
+    setUserId(id);
+  }, []);
 
   const createDicts = (analysisData) => {
     if (analysisData) {
@@ -215,7 +228,6 @@ function App() {
   useEffect(() => {
     createDicts(analysisData);
   }, [analysisData]);
-
 
   // filter data for visualization
   const data = useMemo(() => {
@@ -340,40 +352,51 @@ function App() {
   }, [dataDict.neighborhoodDict, neighborhood]);
 
   const getRequest = (id) => {
-
-    // const callback = (d)=>{
-    //   console.log(d)
-    //   return d}
     fetch(`/get_req?id=${id}`)
-        .then((res) => {
-          if (res) return res.json();
-        })
-        .then((d) => setPointData(d[0]));
-    
-  }
+      .then((res) => {
+        if (res) return res.json();
+      })
+      .then((d) => setPointData(d[0]));
+  };
+
+  const [userId, setUserId] = useState(null);
+
+  const deleteSubscription = (encrypted, subType, subTo) => {
+    const data = {
+      encrypted: encrypted,
+      subType: subType,
+      subTo: subTo,
+    };
+    fetch("/delete_subscription", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }).then((r) => {
+      r.json();
+    });
+  };
+
+  const [subscriptions, setSubscriptions] = useState(null);
+  const [toggleSubscriptions, setToggleSubscriptions] = useState(true);
 
 
-  useEffect(()=>{
-    const location = window.location;
-    const queryParams = new URLSearchParams(location.search);
-    for (let pair of queryParams.entries()) {
-      setToggleSplash(false);
-      if (pair[0] === "req") {
-        const reqData = getRequest(pair[1])
-      } else if (pair[0] === "neighborhood") {
-        setDataView(true);
-
-        for (const neighborhood of neighborhoods.features) {
-          if (neighborhood.properties.listname === pair[1]) {
-            setNeighborhood(neighborhood);
-            break
-          }
-        }
-      }
-      window.history.pushState(null, "", location.href.split("?")[0]);
-
+  useEffect(() => {
+    if (userId) {
+      getSubscriptions(userId);
     }
-  }, [stats])
+  }, [userId, toggleSubscriptions]);
+
+  const getSubscriptions = (id) => {
+    fetch(`/get_subscriptions?id=${userId}`)
+      .then((res) => {
+        if (res) return res.json();
+      })
+      .then((d) => setSubscriptions(d));
+  };
+
 
   const [comment, setComment] = useState(""); // holds current typed comment
 
@@ -468,12 +491,11 @@ function App() {
     setSubEmail("");
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (re.test(email)) {
-
       const data = {
         email: email,
         subType: subType,
-        subTo: subTo
-      }
+        subTo: subTo,
+      };
 
       fetch("/add_subscription", {
         method: "POST",
@@ -500,6 +522,7 @@ function App() {
           id="App-header-logo-container"
           onClick={() => {
             setToggleSplash(true);
+            setToggleSubscriptions(false);
           }}
         >
           <img src={logo} className="App-logo" alt="logo" />
@@ -507,15 +530,24 @@ function App() {
         </div>
         <div id="App-header-settings-container">
           <p>EN</p>
+          <div className="row-btn-container">
+          {userId && <FontAwesomeIcon
+          onClick={()=>{setToggleSubscriptions(!toggleSubscriptions)}}
+            icon={faBell}
+            color={"#A1A1A1"}
+            className={"fa-lg"}
+          />}
           <FontAwesomeIcon
             icon={faCircleInfo}
             color={"#A1A1A1"}
             className={"fa-lg"}
           />
+
+          </div>
         </div>
       </header>
       <div id={"map-container"}>
-        {toggleSplash && (
+        {toggleSplash && !userId && (
           <div id="splash-page">
             <div className="splash-logo-container">
               <img src={logo} className={"splash-logo"} />
@@ -555,6 +587,93 @@ function App() {
             </div>
           </div>
         )}
+
+        {toggleSubscriptions && userId && (
+          <div className="subscription-page">
+            <p className="splash-heading">My Subscriptions</p>
+            {subscriptions && (
+              <>
+                <div className="data-section">
+                  <p className={"data-title"}>Neighborhoods</p>
+                  <div className="sub-list">
+                    {subscriptions.neighborhoods.map((n) => {
+                      return (
+                        <div>
+                          <FontAwesomeIcon
+                            icon={faXmark}
+                            onClick={() => {
+                              deleteSubscription(userId, "neighborhoods", n);
+                              let newNeigh = [
+                                ...subscriptions.neighborhoods,
+                              ].filter((d) => d !== n);
+                              console.log(newNeigh);
+                              setSubscriptions({
+                                ...subscriptions,
+                                neighborhoods: newNeigh,
+                              });
+                            }}
+                          />{" "}
+                          &nbsp;
+                          <a
+                            className="sub-link"
+                            onClick={() => {
+                              for (const neighborhood of neighborhoods.features) {
+                                if (neighborhood.properties.listname === n) {
+                                  setNeighborhood(neighborhood);
+                                  setDataView(true);
+                                  setToggleSubscriptions(false);
+                                  setToggleSplash(false);
+                                  break;
+                                }
+                              }
+                            }}
+                          >
+                            {n}
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="data-section">
+                  <p className={"data-title"}>Service Requests</p>
+                  <div className="sub-list">
+                    {subscriptions.requests.map((r) => {
+                      return (
+                        <div>
+                          <FontAwesomeIcon
+                            icon={faXmark}
+                            onClick={() => {
+                              deleteSubscription(userId, "requests", r);
+                              let newReqs = [...subscriptions.requests].filter(
+                                (d) => d !== r
+                              );
+                              setSubscriptions({
+                                ...subscriptions,
+                                requests: newReqs,
+                              });
+                            }}
+                          />{" "}
+                          &nbsp;
+                          <a
+                            className="sub-link"
+                            onClick={() => {
+                              getRequest(r);
+                              setToggleSubscriptions(false);
+                              setToggleSplash(false);
+                            }}
+                          >
+                            {r}
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
         <Map
           data={data}
           setDataView={setDataView}
@@ -588,9 +707,17 @@ function App() {
                 className="bottomSheet"
                 style={{ minHeight: commentSection ? "65vh" : "30vh" }}
               >
-                <p className="backDrop-sub bold" style={{alignItems:"center", columnGap:"1rem", display:"flex", position:"relative"}}>
+                <p
+                  className="backDrop-sub bold"
+                  style={{
+                    alignItems: "center",
+                    columnGap: "1rem",
+                    display: "flex",
+                    position: "relative",
+                  }}
+                >
                   {pointData?.properties?.service_name}
-                  
+
                   <FontAwesomeIcon
                     icon={faBell}
                     className={"fa-lg"}
@@ -599,40 +726,45 @@ function App() {
                     }}
                   />
                   {toggleSubscribe && (
-              <div className="subscribe-container" style={{top:30}}>
-                <p>
-                  Would you like to be notified of updates made to this service request?
-                </p>
-                <input
-                  id="sub-input"
-                  type="text"
-                  placeholder="Your email here"
-                  value={subEmail}
-                  onChange={(e) => {
-                    document.getElementById("sub-input").style.border = "none";
-                    setSubEmail(e.target.value);
-                  }}
-                />
-                <div className={"row-btn-container"}>
-                  <button
-                    className={"primary-btn-blue"}
-                    onClick={() => {
-                      handleSubscribe("requestss", pointData?.properties?.service_request_id);
-                    }}
-                  >
-                    Subscribe
-                  </button>
-                  <button
-                    className={"primary-btn-gray"}
-                    onClick={() => {
-                      setToggleSubscribe(false);
-                    }}
-                  >
-                    No
-                  </button>
-                </div>
-              </div>
-            )}
+                    <div className="subscribe-container" style={{ top: 30 }}>
+                      <p>
+                        Would you like to be notified of updates made to this
+                        service request?
+                      </p>
+                      <input
+                        id="sub-input"
+                        type="text"
+                        placeholder="Your email here"
+                        value={subEmail}
+                        onChange={(e) => {
+                          document.getElementById("sub-input").style.border =
+                            "none";
+                          setSubEmail(e.target.value);
+                        }}
+                      />
+                      <div className={"row-btn-container"}>
+                        <button
+                          className={"primary-btn-blue"}
+                          onClick={() => {
+                            handleSubscribe(
+                              "requestss",
+                              pointData?.properties?.service_request_id
+                            );
+                          }}
+                        >
+                          Subscribe
+                        </button>
+                        <button
+                          className={"primary-btn-gray"}
+                          onClick={() => {
+                            setToggleSubscribe(false);
+                          }}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </p>
                 {!commentSection ? (
                   <>

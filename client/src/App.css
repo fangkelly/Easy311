@@ -960,6 +960,8 @@ input::file-selector-button,
   flex-direction: column;
   row-gap: 2rem;
   overflow: auto;
+  z-index: 100;
+  background-color: var(--light-black);
 }
 
 

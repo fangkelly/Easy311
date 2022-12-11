@@ -9,12 +9,13 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <Router>
+    {/* <Router>
       <Routes>
         <Route exact path="/" exact element={<App/>}/>
         <Route path="/subscription" element={<Subscription/>}/>
       </Routes>
-    </Router>
+    </Router> */}
+    <App/>
   </React.StrictMode>
 );
 

@@ -407,9 +407,9 @@ app.post("/delete_subscription", async (request, response) => {
 
     let emailMsg = "";
     if (subType === "neighborhoods") {
-      emailMsg = `receiving update emails regarding the status of service request ${subTo}`;
+      emailMsg = `receiving update emails regarding the status of service request in ${subTo}`;
     } else {
-      emailMsg = `receiving update emails regarding the status updates of service requests in ${subTo}`;
+      emailMsg = `receiving update emails regarding the status updates of service requests #${subTo}`;
     }
 
     const msg = {
@@ -544,6 +544,8 @@ app.get("/get_req", async (req, res, next) => {
 // Handle GET requests to /data route
 app.get("/analysis_data", async (req, res, next) => {
   const timeMap = {
+    "Last 6 Months":2190    ,
+    "Last 3 Months":1095,
     "This year": 365,
     "Last 30 days": 30,
     "Last 7 days": 7,

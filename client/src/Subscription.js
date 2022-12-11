@@ -125,14 +125,14 @@ export default function Subscription() {
                           icon={faXmark}
                           onClick={() => {
                             deleteSubscription(id, "requests", r);
-                            let newReqs = [...subscriptions.requests].filter(
-                              (d) => d !== r
-                            );
-                            console.log(newReqs);
-                            setSubscriptions({
-                              ...subscriptions,
-                              requests: newReqs,
-                            });
+                            // let newReqs = [...subscriptions.requests].filter(
+                            //   (d) => d !== r
+                            // );
+                            // console.log(newReqs);
+                            // setSubscriptions({
+                            //   ...subscriptions,
+                            //   requests: newReqs,
+                            // });
                           }}
                         />{" "}
                         &nbsp;

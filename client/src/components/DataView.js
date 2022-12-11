@@ -54,9 +54,11 @@ let DEPARTMENTS = {
   Other: "Various",
 };
 
-const TIME_RANGE = ["Last 30 days", "Last 7 days", "Today"];
+const TIME_RANGE = [ "Last 30 days", "Last 7 days", "Today"];
 
 const compareTime = {
+  "Last 6 Months": "the 6 months before",
+  "Last 3 Months": "the 3 months before",
   "Last 30 days": "the month before",
   "Last 7 days": "the week before",
   Today: "the day before",
