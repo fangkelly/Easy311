@@ -10,6 +10,7 @@ import {
   faCircle,
   faXmark,
   faBell,
+  faShareNodes,
 } from "@fortawesome/free-solid-svg-icons";
 
 // import turf packages
@@ -27,6 +28,8 @@ import DropDown from "./DropDown";
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
 const PHL_BBOX = "-75.353877, 39.859018, -74.92068962905012, 40.14958609050669";
+
+const TWEET_INTENT_URL = "https://twitter.com/intent/tweet";
 
 let CATEGORY_OPTIONS = [
   "Illegal Dumping",
@@ -54,7 +57,7 @@ let DEPARTMENTS = {
   Other: "Various",
 };
 
-const TIME_RANGE = [ "Last 30 days", "Last 7 days", "Today"];
+const TIME_RANGE = ["Last 30 days", "Last 7 days", "Today"];
 
 const compareTime = {
   "Last 6 Months": "the 6 months before",
@@ -175,6 +178,20 @@ export default function DataView({
     return not_nan;
   }
 
+  const getPath = () => {
+    let params 
+    if (neighborhood) {
+      params = `neighborhood=${neighborhood?.properties?.listname}`;
+    } else {
+      params =  `neighborhood=Philadelphia`;
+    }
+
+    let path = window.location.href.split("?")[0];
+    path = path.concat("?");
+    path = path.concat(params);
+    return path;
+  };
+
   const getAverageTime = (category) => {
     if (stats.serviceStats[category].Closed < 1) {
       return "NA";
@@ -269,12 +286,11 @@ export default function DataView({
     setSubEmail("");
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (re.test(email)) {
-
       const data = {
         email: email,
         subType: subType,
-        subTo: subTo
-      }
+        subTo: subTo,
+      };
 
       fetch("/add_subscription", {
         method: "POST",
@@ -310,6 +326,22 @@ export default function DataView({
                   setToggleSubscribe(!toggleSubscribe);
                 }}
               />
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href={`${TWEET_INTENT_URL}?text=${encodeURIComponent(
+                  `Explore 311 service request trends in ${neighborhood?.properties?.listname || "Philadelphia"}`
+                )}&url=${getPath()}`}
+              >
+                <FontAwesomeIcon
+                  icon={faShareNodes}
+                  className={"fa-2xs"}
+                  color={"white"}
+                  onClick={() => {
+                    setToggleSubscribe(!toggleSubscribe);
+                  }}
+                />
+              </a>
             </p>
 
             <FontAwesomeIcon
@@ -340,7 +372,10 @@ export default function DataView({
                   <button
                     className={"primary-btn-blue"}
                     onClick={() => {
-                      handleSubscribe("neighborhoods", neighborhood?.properties?.listname);
+                      handleSubscribe(
+                        "neighborhoods",
+                        neighborhood?.properties?.listname
+                      );
                     }}
                   >
                     Subscribe

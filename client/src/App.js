@@ -150,15 +150,15 @@ function App() {
         setToggleSplash(false);
         setToggleSubscriptions(false);
       } else if (pair[0] === "neighborhood") {
-        for (const neighborhood of neighborhoods.features) {
+        setDataView(true);
+        setToggleSubscriptions(false);
+        setToggleSplash(false);
+        if (pair[1] !== "Philadelphia") {for (const neighborhood of neighborhoods.features) {
           if (neighborhood.properties.listname === pair[1]) {
             setNeighborhood(neighborhood);
-            setDataView(true);
-            setToggleSubscriptions(false);
-            setToggleSplash(false);
             break;
           }
-        }
+        }}
       }
     }
 
@@ -167,8 +167,12 @@ function App() {
 
   const getPath = () => {
     let params;
-    if (dataView && neighborhood) {
-      params = `neighborhood=${neighborhood.properties.listname}`;
+    if (dataView) {
+      if (neighborhood) {
+        params = `neighborhood=${neighborhood.properties.listname}`;
+      } else {
+        params = `neighborhood=Philadelphia`;
+      }
     } else if (pointData) {
       params = `req=${pointData.properties.service_request_id}`;
     }
@@ -550,14 +554,6 @@ function App() {
     } else {
       // if not a valid email
       document.getElementById("sub-input").style.border = "1px solid red";
-    }
-  };
-
-  const getShareText = () => {
-    if (dataView && neighborhood) {
-      return `Explore 311 service request trends in ${neighborhood?.properties?.listname}`;
-    } else {
-      return `Check out this ${pointData?.properties?.service_name} 311 service request`;
     }
   };
 
@@ -1009,7 +1005,7 @@ function App() {
                   target="_blank"
                   rel="noreferrer"
                   href={`${TWEET_INTENT_URL}?text=${encodeURIComponent(
-                    getShareText()
+                    `Explore 311 service request trends in ${neighborhood?.properties?.listname}`
                   )}&url=${getPath()}`}
                 >
                   <button className="backDrop-btn">
