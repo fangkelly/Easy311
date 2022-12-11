@@ -33,7 +33,6 @@ import {
   VerticalTimelineElement,
 } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
-import Subscription from "./Subscription";
 
 // import turf packages
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
@@ -135,6 +134,8 @@ function App() {
   const [enableHeatmap, setEnableHeatmap] = useState(true); // whether to make heatmap active or not
   const [reaction, setReactions] = useState(null); // dicitonary of reactions mapped to their corresponding count
 
+
+
   useEffect(() => {
     const location = window.location;
     const queryParams = new URLSearchParams(location.search);
@@ -142,11 +143,46 @@ function App() {
     for (let pair of queryParams.entries()) {
       if (pair[0] === "id") {
         id = pair[1];
+        setUserId(id);
+      } else if (pair[0] === "req") {
+        const req = pair[1];
+        getRequest(req);
+        setToggleSplash(false);
+        setToggleSubscriptions(false);
+      } else if (pair[0] === "neighborhood") {
+        for (const neighborhood of neighborhoods.features) {
+          if (neighborhood.properties.listname === pair[1]) {
+            setNeighborhood(neighborhood);
+            setDataView(true);
+            setToggleSubscriptions(false);
+            setToggleSplash(false);
+            break;
+          }
+        }
       }
     }
-    console.log("ID ", id);
-    setUserId(id);
+
+    window.history.pushState(null, "", location.href.split("?")[0]);
   }, []);
+
+  useEffect(() => {
+    let params;
+    if (dataView) {
+      params = `neighborhood=${neighborhood.properties.listname}`;
+    } else if (pointData) {
+      params = `req=${pointData.properties.service_request_id}`;
+    }
+
+    let path = window.location.href.split("?")[0];
+    path = path.concat("?");
+    path = path.concat(params);
+    if ("undefined" !== typeof window.history.pushState) {
+      window.history.replaceState(null, "", path);
+    } else {
+      window.location.assign(path);
+    }
+  }, [dataView, pointData]);
+
 
   const createDicts = (analysisData) => {
     if (analysisData) {
@@ -382,7 +418,6 @@ function App() {
   const [subscriptions, setSubscriptions] = useState(null);
   const [toggleSubscriptions, setToggleSubscriptions] = useState(true);
 
-
   useEffect(() => {
     if (userId) {
       getSubscriptions(userId);
@@ -396,7 +431,6 @@ function App() {
       })
       .then((d) => setSubscriptions(d));
   };
-
 
   const [comment, setComment] = useState(""); // holds current typed comment
 
@@ -531,18 +565,21 @@ function App() {
         <div id="App-header-settings-container">
           <p>EN</p>
           <div className="row-btn-container">
-          {userId && <FontAwesomeIcon
-          onClick={()=>{setToggleSubscriptions(!toggleSubscriptions)}}
-            icon={faBell}
-            color={"#A1A1A1"}
-            className={"fa-lg"}
-          />}
-          <FontAwesomeIcon
-            icon={faCircleInfo}
-            color={"#A1A1A1"}
-            className={"fa-lg"}
-          />
-
+            {userId && (
+              <FontAwesomeIcon
+                onClick={() => {
+                  setToggleSubscriptions(!toggleSubscriptions);
+                }}
+                icon={faBell}
+                color={"#A1A1A1"}
+                className={"fa-lg"}
+              />
+            )}
+            <FontAwesomeIcon
+              icon={faCircleInfo}
+              color={"#A1A1A1"}
+              className={"fa-lg"}
+            />
           </div>
         </div>
       </header>
