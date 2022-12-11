@@ -167,7 +167,7 @@ function App() {
 
   const getPath = () => {
     let params;
-    if (dataView) {
+    if (dataView && neighborhood) {
       params = `neighborhood=${neighborhood.properties.listname}`;
     } else if (pointData) {
       params = `req=${pointData.properties.service_request_id}`;
@@ -186,7 +186,7 @@ function App() {
     } else {
       window.location.assign(path);
     }
-  }, [dataView, pointData]);
+  }, [dataView, pointData, neighborhood]);
 
   const createDicts = (analysisData) => {
     if (analysisData) {

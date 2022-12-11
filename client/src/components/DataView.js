@@ -303,7 +303,6 @@ export default function DataView({
               {neighborhood
                 ? neighborhood?.properties?.listname
                 : "Philadelphia"}{" "}
-              &nbsp;
               <FontAwesomeIcon
                 icon={faBell}
                 className={"fa-2xs"}
