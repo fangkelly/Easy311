@@ -1005,7 +1005,7 @@ function App() {
                   target="_blank"
                   rel="noreferrer"
                   href={`${TWEET_INTENT_URL}?text=${encodeURIComponent(
-                    `Explore 311 service request trends in ${neighborhood?.properties?.listname}`
+                    `Check out this ${pointData?.properties?.service_name || ''} service request`
                   )}&url=${getPath()}`}
                 >
                   <button className="backDrop-btn">
