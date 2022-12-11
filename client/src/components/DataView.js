@@ -183,7 +183,7 @@ export default function DataView({
     if (neighborhood) {
       params = `neighborhood=${neighborhood?.properties?.listname}`;
     } else {
-      params =  `neighborhood=Philadelphia`;
+      paramsgit =  `neighborhood=Philadelphia`;
     }
 
     let path = window.location.href.split("?")[0];

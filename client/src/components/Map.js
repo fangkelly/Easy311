@@ -161,7 +161,6 @@ export default function Map({
       pickable: true,
       onClick: (info, event) => {
         flyToClick(info.coordinate, info.object, 16);
-        console.log(info.object)
       },
       // getRadius: (d) => {
       //   if (initialViewState.zoom > 14) {
