@@ -1005,16 +1005,17 @@ function App() {
               }}
             >
               <div className="backDrop-btns">
-                <button
-                  className="backDrop-btn"
+                <a
                   target="_blank"
                   rel="noreferrer"
                   href={`${TWEET_INTENT_URL}?text=${encodeURIComponent(
                     getShareText()
                   )}&url=${getPath()}`}
                 >
-                  <FontAwesomeIcon icon={faShareNodes} color={"black"} />
-                </button>
+                  <button className="backDrop-btn">
+                    <FontAwesomeIcon icon={faShareNodes} color={"black"} />
+                  </button>
+                </a>
                 <button
                   className="backDrop-btn"
                   onClick={(e) => {
