@@ -818,8 +818,8 @@ export default function ChatBot({ setToggleForm }) {
             5. Phone: ${response.phone || "N/A"}
             6. Media: ${response.media?.length || 0} files
 
-            If you've provded your email or phone number, a volunteer/advocate will be in touch with you shortly to update you on the status of your request.
-            To begin another submission, texy anything in the chat.
+            If you've provided your email or phone number, a volunteer/advocate will be in touch with you shortly to update you on the status of your request.
+            To begin another submission, text anything in the chat.
             Thank you for looking after the Philly community <3
             `,
           },
