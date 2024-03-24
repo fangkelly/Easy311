@@ -8,27 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { set } from "mongoose";
 
-const SPREADSHEET_ID = "1BQB3HWjFXnxcbvG0uzv72dLMk3CkI7whFJoufnUa_Y0";
-const CLIENT_ID =
-  "674249811099-cb72cfg2k8aklpbkths41mknhurmepv4.apps.googleusercontent.com";
-const API_KEY = "AIzaSyBFN1wVr58SqaQdz3Rx0me_BXZBb7mkg1w";
-const SCOPE = "https://www.googleapis.com/auth/spreadsheets";
-
-const MAPBOX_ACCESS_TOKEN =
-  "pk.eyJ1IjoiZmFuZ2siLCJhIjoiY2t3MG56cWpjNDd3cjJvbW9iam9sOGo1aSJ9.RBRaejr5HQqDRQaCIBDzZA";
-
-const CATEGORY_OPTIONS = [
-  "Illegal Dumping",
-  "Rubbish and Recycling",
-  "Abandoned Vehicle",
-  "Pothole Repair",
-  "Graffiti Removal",
-  "Vacant Lots",
-  "Street Light Outage",
-  "Property Maintenance",
-  "Street Trees",
-  "Other",
-];
+const MAPBOX_ACCESS_TOKEN = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
 
 export default function ChatBot({ setToggleForm }) {
   const [response, setResponse] = useState({
@@ -58,7 +38,6 @@ export default function ChatBot({ setToggleForm }) {
   };
 
   const setCategory = (newCategory) => {
-    
     setResponse({ ...response, category: categoryMap[newCategory] });
   };
 
@@ -249,7 +228,6 @@ export default function ChatBot({ setToggleForm }) {
     setSendResponse(true);
   };
 
-
   useEffect(() => {
     if (sendResponse) {
       messageParser(message);
@@ -390,7 +368,7 @@ export default function ChatBot({ setToggleForm }) {
             {
               sender: "bot",
               message: `Here is what we have from you:
-              1. Category: ${categoryMap[option]|| "N/A"}
+              1. Category: ${categoryMap[option] || "N/A"}
               2. Location: ${response.address || "N/A"}
               3. Description: ${response.description || "N/A"}
               4. Email: ${response.email || "N/A"}
@@ -470,7 +448,7 @@ export default function ChatBot({ setToggleForm }) {
           {
             sender: "bot",
             message: `Here is what we have from you:
-            1. Category: ${response.category|| "N/A"}
+            1. Category: ${response.category || "N/A"}
             2. Location: ${response.address || "N/A"}
             3. Description: ${response.description || "N/A"}
             4. Email: ${response.email || "N/A"}
@@ -503,7 +481,7 @@ export default function ChatBot({ setToggleForm }) {
           {
             sender: "bot",
             message: `Here is what we have from you:
-            1. Category: ${response.category|| "N/A"}
+            1. Category: ${response.category || "N/A"}
             2. Location: ${msg || "N/A"}
             3. Description: ${response.description || "N/A"}
             4. Email: ${response.email || "N/A"}
@@ -516,7 +494,7 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
         setSendResponse(false);
-        setCurrentStep(11)
+        setCurrentStep(11);
       }
     } else if (currentStep === 4) {
       setDescription(msg);
@@ -629,7 +607,6 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
         setSendResponse(false);
-
       }
     } else if (currentStep === 7) {
       if (msg.toLowerCase() !== "y" && msg.toLowerCase() !== "n") {
@@ -642,7 +619,6 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
         setSendResponse(false);
-
       } else if (msg.toLowerCase() === "y") {
         setMessageHistory([
           ...messageHistory,
@@ -671,16 +647,17 @@ export default function ChatBot({ setToggleForm }) {
       setPhone(number);
       if (re.test(number)) {
         if (!proofread) {
-        setMessageHistory([
-          ...messageHistory,
-          {
-            sender: "bot",
-            message: `Lastly, would you like to provide your name? [Y/N]`,
-          },
-        ]);
-        setSendResponse(false);
+          setMessageHistory([
+            ...messageHistory,
+            {
+              sender: "bot",
+              message: `Lastly, would you like to provide your name? [Y/N]`,
+            },
+          ]);
+          setSendResponse(false);
 
-        setCurrentStep(9);} else {
+          setCurrentStep(9);
+        } else {
           setMessageHistory([
             ...messageHistory,
             {
@@ -697,7 +674,6 @@ export default function ChatBot({ setToggleForm }) {
               If you would like to change any of your responses, please type the number corresponding to the field you would like to correct.
               `,
             },
-
           ]);
           setSendResponse(false);
 
@@ -723,7 +699,6 @@ export default function ChatBot({ setToggleForm }) {
           },
         ]);
         setSendResponse(false);
-
       } else if (msg.toLowerCase() === "y") {
         setMessageHistory([
           ...messageHistory,
@@ -828,7 +803,6 @@ export default function ChatBot({ setToggleForm }) {
         setSendResponse(false);
         setProofread(false);
         handleSubmit({ ...response, date: date });
-      
       } else if (option === 1) {
         setMessageHistory([
           ...messageHistory,
@@ -841,7 +815,6 @@ export default function ChatBot({ setToggleForm }) {
         setProofread(true);
         setCurrentStep(0);
         setSendResponse(false);
-
       } else if (option === 2) {
         setMessageHistory([
           ...messageHistory,
@@ -854,20 +827,17 @@ export default function ChatBot({ setToggleForm }) {
         setProofread(true);
         setCurrentStep(3);
         setSendResponse(false);
-
       } else if (option === 3) {
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
             message: `What would you like to change the description of the service request to?`,
-          
           },
         ]);
         setProofread(true);
         setCurrentStep(4);
         setSendResponse(false);
-
       } else if (option === 4) {
         setMessageHistory([
           ...messageHistory,
@@ -879,7 +849,6 @@ export default function ChatBot({ setToggleForm }) {
         setProofread(true);
         setCurrentStep(6);
         setSendResponse(false);
-
       } else if (option === 5) {
         setMessageHistory([
           ...messageHistory,
@@ -891,23 +860,21 @@ export default function ChatBot({ setToggleForm }) {
         setProofread(true);
         setCurrentStep(8);
         setSendResponse(false);
-
       } else if (option === 6) {
         setMessageHistory([
           ...messageHistory,
           {
             sender: "bot",
             message: `What would you like to change the media to?`,
-            widget: "media_upload"
+            widget: "media_upload",
           },
         ]);
         setProofread(true);
         setSendResponse(false);
 
         setCurrentStep(12);
-
       }
-    } else if (currentStep===12) {
+    } else if (currentStep === 12) {
       setMessageHistory([
         ...messageHistory,
         {
@@ -929,7 +896,6 @@ export default function ChatBot({ setToggleForm }) {
       setSendResponse(false);
     }
   };
-
 
   return (
     <div className="chatbot-container">

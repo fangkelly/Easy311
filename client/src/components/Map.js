@@ -76,13 +76,13 @@ export default function Map({
     }
   }, [neighborhood]);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (enableHeatmap) {
-      setActiveLayer({phl311:false, heatmp:true})
+      setActiveLayer({ phl311: false, heatmp: true });
     } else {
-      setActiveLayer({phl311:true, heatmp:false})
+      setActiveLayer({ phl311: true, heatmp: false });
     }
-  }, [enableHeatmap])
+  }, [enableHeatmap]);
 
   const flyToClick = useCallback((coords, obj = null, zoom = 15, pitch = 0) => {
     if (obj) setPointData(obj);

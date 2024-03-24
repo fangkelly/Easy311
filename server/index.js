@@ -258,17 +258,6 @@ app.post("/write_sheets", async (request, res) => {
         });
     }
 
-    // if (request.body.phone) {
-    //   twilClient.messages
-    //   .create({
-    //      body: 'McAvoy or Stewart? These timelines can get so confusing.',
-    //      from: '+13609970826',
-    //      statusCallback: 'https://enn1ytq92dedf.x.pipedream.net/',
-    //      to: `+1${request.body.}`
-    //    })
-    //   .then(message => console.log(message.sid));
-    // }
-
     res.send(response);
   } catch (error) {
     console.log(error.message, error.stack);
@@ -357,24 +346,22 @@ app.get("/comments", async (request, response) => {
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
-
-
 app.get("/get_subscriptions", async (request, response) => {
   callback_subs = (c) => {
     return response.send(c);
   };
 
-
-  subscriptionModel.findOne({ encrypted: request.query.id }).exec((err, res) => {
-    if (err) {
-      console.log(err);
-      return response.status(500).send(err);
-    } else {
-      return callback_subs(res);
-    }
-  });
+  subscriptionModel
+    .findOne({ encrypted: request.query.id })
+    .exec((err, res) => {
+      if (err) {
+        console.log(err);
+        return response.status(500).send(err);
+      } else {
+        return callback_subs(res);
+      }
+    });
 });
-
 
 // POST delete a subscription from the database
 app.post("/delete_subscription", async (request, response) => {
@@ -387,7 +374,7 @@ app.post("/delete_subscription", async (request, response) => {
       db.collection("subscriptions").updateOne(
         { encrypted: encrypted },
         {
-          $pull: { neighborhoods: { $in: [ subTo ] }}
+          $pull: { neighborhoods: { $in: [subTo] } },
         },
         { upsert: true }
       );
@@ -395,13 +382,13 @@ app.post("/delete_subscription", async (request, response) => {
       db.collection("subscriptions").updateOne(
         { encrypted: encrypted },
         {
-          $pull: { requests: { $in: [ subTo ] }}
+          $pull: { requests: { $in: [subTo] } },
         },
         { upsert: true }
       );
     }
 
-    var cryptorjs = require('cryptorjs');
+    var cryptorjs = require("cryptorjs");
     var myCryptor = new cryptorjs(ENCRYPTION_KEY);
     var email = myCryptor.decode(encrypted);
 
@@ -443,14 +430,11 @@ app.post("/delete_subscription", async (request, response) => {
     console.log("ERROR ", error);
     response.status(500).send(error);
   }
-})
-
-
+});
 
 // POST add a new subscription to the database
 app.post("/add_subscription", async (request, response) => {
-  
-  var cryptorjs = require('cryptorjs');
+  var cryptorjs = require("cryptorjs");
   var myCryptor = new cryptorjs(ENCRYPTION_KEY);
 
   const email = request.body.email;
@@ -465,7 +449,7 @@ app.post("/add_subscription", async (request, response) => {
         { email: email },
         {
           $addToSet: { neighborhoods: subTo },
-          $set : {encrypted: encrypted}
+          $set: { encrypted: encrypted },
         },
         { upsert: true }
       );
@@ -522,30 +506,30 @@ app.post("/add_subscription", async (request, response) => {
   }
 });
 
-
-
 app.get("/get_req", async (req, res, next) => {
   try {
     axios
-        .get(
-          `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE service_request_id = ${parseInt(req.query.id)}`
-        )
-        .then((response) =>
-          res.json(response.data.features.filter((d) => d.geometry !== null))
-        )
-        .catch((error) => {
-          console.log(error);
-        });
+      .get(
+        `https://phl.carto.com/api/v2/sql?format=GeoJSON&q=SELECT * FROM public_cases_fc WHERE service_request_id = ${parseInt(
+          req.query.id
+        )}`
+      )
+      .then((response) =>
+        res.json(response.data.features.filter((d) => d.geometry !== null))
+      )
+      .catch((error) => {
+        console.log(error);
+      });
   } catch (err) {
     next(err);
-  }}
-)
+  }
+});
 
 // Handle GET requests to /data route
 app.get("/analysis_data", async (req, res, next) => {
   const timeMap = {
-    "Last 6 Months":2190    ,
-    "Last 3 Months":1095,
+    "Last 6 Months": 2190,
+    "Last 3 Months": 1095,
     "This year": 365,
     "Last 30 days": 30,
     "Last 7 days": 7,
